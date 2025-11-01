@@ -1,3 +1,4 @@
+// src/pages/Inventory.tsx
 import React, { useState, useEffect } from 'react';
 import { Product } from '../types';
 import { useProducts } from '../hooks/useProducts';
@@ -16,8 +17,8 @@ const Inventory: React.FC = () => {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+  const [actionError, setActionError] = useState<string | null>(null);
 
-  // Filter products based on search
   useEffect(() => {
     const filtered = products.filter(product =>
       product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -28,28 +29,40 @@ const Inventory: React.FC = () => {
 
   const handleAddProduct = async (productData: Omit<Product, 'id'>) => {
     try {
+      console.log('Attempting to add product:', productData);
       await addProduct(productData);
+      console.log('Product added successfully');
       setShowAddForm(false);
+      setActionError(null);
     } catch (error) {
-      // Error is handled in the hook
+      console.error('Error adding product:', error);
+      setActionError('Failed to add product. Please try again.');
     }
   };
 
   const handleEditProduct = async (updatedProduct: Product | Omit<Product, 'id'>) => {
     try {
+      console.log('Attempting to update product:', updatedProduct);
       await updateProduct(updatedProduct as Product);
+      console.log('Product updated successfully');
       setEditingProduct(null);
+      setActionError(null);
     } catch (error) {
-      // Error is handled in the hook
+      console.error('Error updating product:', error);
+      setActionError('Failed to update product. Please try again.');
     }
   };
 
   const handleDeleteProduct = async (productId: string) => {
     if (window.confirm('Are you sure you want to delete this product?')) {
       try {
+        console.log('Attempting to delete product:', productId);
         await deleteProduct(productId);
+        console.log('Product deleted successfully');
+        setActionError(null);
       } catch (error) {
-        // Error is handled in the hook
+        console.error('Error deleting product:', error);
+        setActionError('Failed to delete product. Please try again.');
       }
     }
   };
@@ -74,10 +87,16 @@ const Inventory: React.FC = () => {
         </button>
       </div>
 
-      {/* Error Message */}
+      {/* Error Messages */}
       {error && (
         <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
-          {error}
+          Database Error: {error}
+        </div>
+      )}
+
+      {actionError && (
+        <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+          Action Error: {actionError}
         </div>
       )}
 
@@ -165,7 +184,10 @@ const Inventory: React.FC = () => {
       {showAddForm && (
         <ProductForm
           onSave={handleAddProduct}
-          onCancel={() => setShowAddForm(false)}
+          onCancel={() => {
+            setShowAddForm(false);
+            setActionError(null);
+          }}
         />
       )}
 
@@ -174,14 +196,17 @@ const Inventory: React.FC = () => {
         <ProductForm
           product={editingProduct}
           onSave={handleEditProduct}
-          onCancel={() => setEditingProduct(null)}
+          onCancel={() => {
+            setEditingProduct(null);
+            setActionError(null);
+          }}
         />
       )}
     </div>
   );
 };
 
-// Product Form Component (same as before)
+// Product Form Component
 interface ProductFormProps {
   product?: Product;
   onSave: (product: Product | Omit<Product, 'id'>) => Promise<void>;
@@ -196,12 +221,23 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSave, onCancel }) 
     category: product?.category || ''
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (product) {
-      onSave({ ...formData, id: product.id });
-    } else {
-      onSave(formData);
+    setIsSubmitting(true);
+    
+    try {
+      console.log('Form submitted with data:', formData);
+      if (product) {
+        await onSave({ ...formData, id: product.id });
+      } else {
+        await onSave(formData);
+      }
+    } catch (error) {
+      console.error('Form submission error:', error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -223,6 +259,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSave, onCancel }) 
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              disabled={isSubmitting}
             />
           </div>
 
@@ -236,6 +273,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSave, onCancel }) 
               value={formData.category}
               onChange={(e) => setFormData({ ...formData, category: e.target.value })}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              disabled={isSubmitting}
             />
           </div>
 
@@ -250,8 +288,9 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSave, onCancel }) 
                 min="0"
                 required
                 value={formData.price}
-                onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) })}
+                onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                disabled={isSubmitting}
               />
             </div>
 
@@ -264,8 +303,9 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSave, onCancel }) 
                 min="0"
                 required
                 value={formData.stock}
-                onChange={(e) => setFormData({ ...formData, stock: parseInt(e.target.value) })}
+                onChange={(e) => setFormData({ ...formData, stock: parseInt(e.target.value) || 0 })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                disabled={isSubmitting}
               />
             </div>
           </div>
@@ -275,14 +315,16 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSave, onCancel }) 
               type="button"
               onClick={onCancel}
               className="px-4 py-2 text-gray-600 hover:text-gray-800 font-medium"
+              disabled={isSubmitting}
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={isSubmitting}
             >
-              {product ? 'Update Product' : 'Add Product'}
+              {isSubmitting ? 'Saving...' : (product ? 'Update Product' : 'Add Product')}
             </button>
           </div>
         </form>

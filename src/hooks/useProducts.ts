@@ -18,77 +18,107 @@ export const useProducts = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Load all products
+  const isElectron = typeof window !== 'undefined' && window.electronAPI;
+
   const loadProducts = async () => {
+    if (!isElectron) {
+      setError('Application not running in Electron environment. Please use the desktop app.');
+      return;
+    }
+
     setLoading(true);
     setError(null);
     try {
       const data = await window.electronAPI.getProducts();
       setProducts(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load products');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load products from database';
+      setError(errorMessage);
+      console.error('Error loading products:', err);
     } finally {
       setLoading(false);
     }
   };
 
-  // Add new product
   const addProduct = async (product: Omit<Product, 'id'>) => {
+    if (!isElectron) {
+      throw new Error('Application not running in Electron environment');
+    }
+
     setError(null);
     try {
       const newProduct = await window.electronAPI.createProduct(product);
       setProducts(prev => [...prev, newProduct]);
       return newProduct;
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to add product');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to add product to database';
+      setError(errorMessage);
+      console.error('Error adding product:', err);
       throw err;
     }
   };
 
-  // Update product
   const updateProduct = async (product: Product) => {
+    if (!isElectron) {
+      throw new Error('Application not running in Electron environment');
+    }
+
     setError(null);
     try {
       await window.electronAPI.updateProduct(product);
       setProducts(prev => prev.map(p => p.id === product.id ? product : p));
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update product');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to update product in database';
+      setError(errorMessage);
+      console.error('Error updating product:', err);
       throw err;
     }
   };
 
-  // Delete product
   const deleteProduct = async (id: string) => {
+    if (!isElectron) {
+      throw new Error('Application not running in Electron environment');
+    }
+
     setError(null);
     try {
       await window.electronAPI.deleteProduct(id);
       setProducts(prev => prev.filter(p => p.id !== id));
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete product');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to delete product from database';
+      setError(errorMessage);
+      console.error('Error deleting product:', err);
       throw err;
     }
   };
 
-  // Search products
   const searchProducts = async (searchTerm: string): Promise<Product[]> => {
+    if (!isElectron) {
+      throw new Error('Application not running in Electron environment');
+    }
+
     setError(null);
     try {
       return await window.electronAPI.searchProducts(searchTerm);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to search products');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to search products in database';
+      setError(errorMessage);
+      console.error('Error searching products:', err);
       throw err;
     }
   };
 
-  // Load products on component mount
   useEffect(() => {
-    loadProducts();
+    if (isElectron) {
+      loadProducts();
+    }
   }, []);
 
   return {
     products,
     loading,
     error,
+    isElectron,
     loadProducts,
     addProduct,
     updateProduct,
