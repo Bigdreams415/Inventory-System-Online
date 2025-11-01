@@ -1,15 +1,33 @@
-import React from 'react';
+import React, { useState } from 'react';
+import Layout from './components/Layout/Layout';
+import Dashboard from './pages/Dashboard';
+import PointOfSale from './pages/PointOfSale';
+import Inventory from './pages/Inventory';
+import Sales from './pages/Sales';
+import { PageType } from './types/navigation';
 
 function App() {
+  const [currentPage, setCurrentPage] = useState<PageType>('pos');
+
+  const renderPage = () => {
+    switch (currentPage) {
+      case 'dashboard':
+        return <Dashboard />;
+      case 'pos':
+        return <PointOfSale />;
+      case 'inventory':
+        return <Inventory />;
+      case 'sales':
+        return <Sales />;
+      default:
+        return <PointOfSale />;
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-      <h1 className="text-4xl font-bold text-blue-600">
-        POS Inventory System 🎉
-      </h1>
-      <p className="text-lg text-gray-600 mt-4">
-        Electron + React + TypeScript + Tailwind
-      </p>
-    </div>
+    <Layout activePage={currentPage} setActivePage={setCurrentPage}>
+      {renderPage()}
+    </Layout>
   );
 }
 
