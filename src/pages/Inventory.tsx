@@ -22,7 +22,8 @@ const Inventory: React.FC = () => {
   useEffect(() => {
     const filtered = products.filter(product =>
       product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.category.toLowerCase().includes(searchTerm.toLowerCase())
+      product.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      product.barcode?.toLowerCase().includes(searchTerm.toLowerCase())
     );
     setFilteredProducts(filtered);
   }, [products, searchTerm]);
@@ -67,6 +68,17 @@ const Inventory: React.FC = () => {
     }
   };
 
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
   if (loading && products.length === 0) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -104,7 +116,7 @@ const Inventory: React.FC = () => {
       <div className="mb-6">
         <input
           type="text"
-          placeholder="Search products by name or category..."
+          placeholder="Search products by name, category, or barcode..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -128,10 +140,19 @@ const Inventory: React.FC = () => {
                   Category
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Price
+                  Buy Price
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Sell Price
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Profit Margin
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Stock
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Last Updated
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Actions
@@ -139,42 +160,69 @@ const Inventory: React.FC = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {filteredProducts.map((product) => (
-                <tr key={product.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{product.name}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-500">{product.category}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">${product.price.toFixed(2)}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                      product.stock > 10 ? 'bg-green-100 text-green-800' : 
-                      product.stock > 0 ? 'bg-yellow-100 text-yellow-800' : 
-                      'bg-red-100 text-red-800'
-                    }`}>
-                      {product.stock} in stock
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                    <button
-                      onClick={() => setEditingProduct(product)}
-                      className="text-blue-600 hover:text-blue-900"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDeleteProduct(product.id)}
-                      className="text-red-600 hover:text-red-900"
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {filteredProducts.map((product) => {
+                const profitMargin = product.sell_price - product.buy_price;
+                const profitPercentage = (profitMargin / product.buy_price) * 100;
+                
+                return (
+                  <tr key={product.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4">
+                      <div className="text-sm font-medium text-gray-900">{product.name}</div>
+                      {product.barcode && (
+                        <div className="text-xs text-gray-500">Barcode: {product.barcode}</div>
+                      )}
+                      {product.description && (
+                        <div className="text-xs text-gray-500 truncate max-w-xs">
+                          {product.description}
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-500">{product.category}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">${product.buy_price.toFixed(2)}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-semibold text-green-900">${product.sell_price.toFixed(2)}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm">
+                        <div className="text-gray-900">${profitMargin.toFixed(2)}</div>
+                        <div className={`text-xs ${profitPercentage >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          ({profitPercentage.toFixed(1)}%)
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                        product.stock > 10 ? 'bg-green-100 text-green-800' : 
+                        product.stock > 0 ? 'bg-yellow-100 text-yellow-800' : 
+                        'bg-red-100 text-red-800'
+                      }`}>
+                        {product.stock} in stock
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {formatDate(product.updated_at)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                      <button
+                        onClick={() => setEditingProduct(product)}
+                        className="text-blue-600 hover:text-blue-900"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDeleteProduct(product.id)}
+                        className="text-red-600 hover:text-red-900"
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         )}
@@ -216,15 +264,30 @@ interface ProductFormProps {
 const ProductForm: React.FC<ProductFormProps> = ({ product, onSave, onCancel }) => {
   const [formData, setFormData] = useState({
     name: product?.name || '',
-    price: product?.price || 0,
+    buy_price: product?.buy_price || 0,
+    sell_price: product?.sell_price || 0,
     stock: product?.stock || 0,
-    category: product?.category || ''
+    category: product?.category || '',
+    description: product?.description || '',
+    barcode: product?.barcode || ''
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validation
+    if (formData.sell_price < formData.buy_price) {
+      alert('Sell price cannot be less than buy price!');
+      return;
+    }
+    
+    if (formData.buy_price < 0 || formData.sell_price < 0 || formData.stock < 0) {
+      alert('Prices and stock cannot be negative!');
+      return;
+    }
+
     setIsSubmitting(true);
     
     try {
@@ -241,9 +304,12 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSave, onCancel }) 
     }
   };
 
+  const profitMargin = formData.sell_price - formData.buy_price;
+  const profitPercentage = formData.buy_price > 0 ? (profitMargin / formData.buy_price) * 100 : 0;
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-md">
+      <div className="bg-white rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
         <h3 className="text-lg font-semibold mb-4">
           {product ? 'Edit Product' : 'Add New Product'}
         </h3>
@@ -251,7 +317,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSave, onCancel }) 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Product Name
+              Product Name *
             </label>
             <input
               type="text"
@@ -265,7 +331,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSave, onCancel }) 
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Category
+              Category *
             </label>
             <input
               type="text"
@@ -280,15 +346,15 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSave, onCancel }) 
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Price ($)
+                Buy Price ($) *
               </label>
               <input
                 type="number"
                 step="0.01"
                 min="0"
                 required
-                value={formData.price}
-                onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
+                value={formData.buy_price}
+                onChange={(e) => setFormData({ ...formData, buy_price: parseFloat(e.target.value) || 0 })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 disabled={isSubmitting}
               />
@@ -296,18 +362,81 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSave, onCancel }) 
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Stock Quantity
+                Sell Price ($) *
               </label>
               <input
                 type="number"
+                step="0.01"
                 min="0"
                 required
-                value={formData.stock}
-                onChange={(e) => setFormData({ ...formData, stock: parseInt(e.target.value) || 0 })}
+                value={formData.sell_price}
+                onChange={(e) => setFormData({ ...formData, sell_price: parseFloat(e.target.value) || 0 })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 disabled={isSubmitting}
               />
             </div>
+          </div>
+
+          {/* Profit Margin Display */}
+          {formData.buy_price > 0 && (
+            <div className="p-3 bg-gray-50 rounded-lg">
+              <div className="text-sm text-gray-700">
+                <div className="flex justify-between">
+                  <span>Profit Margin:</span>
+                  <span className={`font-semibold ${profitMargin >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    ${profitMargin.toFixed(2)} ({profitPercentage.toFixed(1)}%)
+                  </span>
+                </div>
+                {profitMargin < 0 && (
+                  <div className="text-xs text-red-600 mt-1">
+                    Warning: Selling at a loss!
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Stock Quantity *
+            </label>
+            <input
+              type="number"
+              min="0"
+              required
+              value={formData.stock}
+              onChange={(e) => setFormData({ ...formData, stock: parseInt(e.target.value) || 0 })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              disabled={isSubmitting}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Barcode (Optional)
+            </label>
+            <input
+              type="text"
+              value={formData.barcode}
+              onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              disabled={isSubmitting}
+              placeholder="Scan or enter barcode"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Description (Optional)
+            </label>
+            <textarea
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              rows={3}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              disabled={isSubmitting}
+              placeholder="Product description..."
+            />
           </div>
 
           <div className="flex justify-end space-x-3 pt-4">

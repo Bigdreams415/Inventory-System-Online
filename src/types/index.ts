@@ -5,6 +5,10 @@ export interface Product {
   sell_price: number;
   stock: number;
   category: string;
+  description?: string;
+  barcode?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface CartItem {
