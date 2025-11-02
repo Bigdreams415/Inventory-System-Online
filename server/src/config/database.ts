@@ -2,28 +2,10 @@ import sqlite3 from 'sqlite3';
 import path from 'path';
 import fs from 'fs';
 
-const isDev = process.env.NODE_ENV === 'development';
+// Project direcoty 
+const dbPath = path.join(process.cwd(), 'database.sqlite');
 
-// Professional database path handling
-let dbPath: string;
-
-if (isDev) {
-  // Development: Use project root
-  dbPath = path.join(process.cwd(), '../../database.sqlite');
-} else {
-  // Production: Use proper data directory
-  const userDataPath = process.env.USER_DATA_PATH || 
-    path.join(require('os').homedir(), '.pos-inventory');
-  
-  // Create directory if it doesn't exist
-  if (!fs.existsSync(userDataPath)) {
-    fs.mkdirSync(userDataPath, { recursive: true });
-  }
-  
-  dbPath = path.join(userDataPath, 'database.sqlite');
-}
-
-// Ensure database directory exists
+// Ensure the database file exists  
 const dbDir = path.dirname(dbPath);
 if (!fs.existsSync(dbDir)) {
   fs.mkdirSync(dbDir, { recursive: true });
@@ -43,7 +25,6 @@ export const initializeDatabase = (): Promise<sqlite3.Database> => {
           db.run('PRAGMA foreign_keys = ON');
           db.run('PRAGMA journal_mode = WAL');
           db.run('PRAGMA synchronous = NORMAL');
-          db.run('PRAGMA cache_size = -64000'); // 64MB cache
         });
 
         createTables(db).then(() => resolve(db)).catch(reject);
@@ -52,13 +33,15 @@ export const initializeDatabase = (): Promise<sqlite3.Database> => {
   });
 };
 
+// createTables function 
 const createTables = (db: sqlite3.Database): Promise<void> => {
   return new Promise((resolve, reject) => {
     const productsTable = `
       CREATE TABLE IF NOT EXISTS products (
         id TEXT PRIMARY KEY,
         name TEXT NOT NULL,
-        price REAL NOT NULL CHECK (price >= 0),
+        buy_price REAL NOT NULL CHECK (buy_price >= 0),
+        sell_price REAL NOT NULL CHECK (sell_price >= 0),
         stock INTEGER NOT NULL DEFAULT 0 CHECK (stock >= 0),
         category TEXT NOT NULL,
         description TEXT,
@@ -107,11 +90,12 @@ const createTables = (db: sqlite3.Database): Promise<void> => {
       )
     `;
 
-    // Create indexes for better performance
     const indexes = [
       'CREATE INDEX IF NOT EXISTS idx_products_category ON products(category)',
       'CREATE INDEX IF NOT EXISTS idx_products_name ON products(name)',
       'CREATE INDEX IF NOT EXISTS idx_products_barcode ON products(barcode)',
+      'CREATE INDEX IF NOT EXISTS idx_products_buy_price ON products(buy_price)',
+      'CREATE INDEX IF NOT EXISTS idx_products_sell_price ON products(sell_price)',
       'CREATE INDEX IF NOT EXISTS idx_sales_created_at ON sales(created_at)',
       'CREATE INDEX IF NOT EXISTS idx_sales_payment_method ON sales(payment_method)',
       'CREATE INDEX IF NOT EXISTS idx_sale_items_sale_id ON sale_items(sale_id)',

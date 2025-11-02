@@ -1,7 +1,8 @@
 export interface Product {
   id: string;
   name: string;
-  price: number;
+  buy_price: number;
+  sell_price: number;
   stock: number;
   category: string;
 }
@@ -9,6 +10,7 @@ export interface Product {
 export interface CartItem {
   product: Product;
   quantity: number;
+  unit_price: number;
 }
 
 export interface Sale {

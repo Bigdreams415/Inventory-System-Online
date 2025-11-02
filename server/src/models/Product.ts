@@ -42,14 +42,15 @@ export class ProductModel {
     const id = `prod_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     
     const query = `
-      INSERT INTO products (id, name, price, stock, category, description, barcode)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO products (id, name, buy_price, sell_price, stock, category, description, barcode)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `;
     
     await dbService.run(query, [
       id,
       productData.name,
-      productData.price,
+      productData.buy_price,
+      productData.sell_price,
       productData.stock,
       productData.category,
       productData.description || null,
@@ -73,9 +74,13 @@ export class ProductModel {
       fields.push('name = ?');
       values.push(productData.name);
     }
-    if (productData.price !== undefined) {
-      fields.push('price = ?');
-      values.push(productData.price);
+    if (productData.buy_price !== undefined) {
+      fields.push('buy_price = ?');
+      values.push(productData.buy_price);
+    }
+    if (productData.sell_price !== undefined) {
+      fields.push('sell_price = ?');
+      values.push(productData.sell_price);
     }
     if (productData.stock !== undefined) {
       fields.push('stock = ?');
@@ -98,7 +103,6 @@ export class ProductModel {
       throw new Error('No fields to update');
     }
 
-    fields.push('updated_at = CURRENT_TIMESTAMP');
     values.push(id);
 
     const query = `UPDATE products SET ${fields.join(', ')} WHERE id = ?`;
@@ -115,11 +119,48 @@ export class ProductModel {
   // Delete product
   static async delete(id: string): Promise<void> {
     const query = 'DELETE FROM products WHERE id = ?';
-    const result = await dbService.run(query, [id]);
-    
-    if (result.changes === 0) {
-      throw new Error('Product not found');
+    await dbService.run(query, [id]);
+  }
+
+  // Add validation method
+  static validateProductData(productData: any): { isValid: boolean; errors: string[] } {
+    const errors: string[] = [];
+
+    if (!productData.name || productData.name.trim() === '') {
+      errors.push('Product name is required');
     }
+    if (productData.buy_price === undefined || productData.buy_price < 0) {
+      errors.push('Valid buy price is required');
+    }
+    if (productData.sell_price === undefined || productData.sell_price < 0) {
+      errors.push('Valid sell price is required');
+    }
+    if (productData.buy_price > productData.sell_price) {
+      errors.push('Sell price must be greater than or equal to buy price');
+    }
+    if (!productData.category || productData.category.trim() === '') {
+      errors.push('Category is required');
+    }
+    if (productData.stock === undefined || productData.stock < 0) {
+      errors.push('Valid stock quantity is required');
+    }
+
+    return {
+      isValid: errors.length === 0,
+      errors
+    };
+  }
+
+  // claculate profit margin
+// Calculate profit margin (for future dashboard)
+  static calculateMargin(buyPrice: number, sellPrice: number): { amount: number; percentage: number } {
+    const amount = sellPrice - buyPrice;
+    const percentage = buyPrice > 0 ? (amount / buyPrice) * 100 : 0;
+    
+    return {
+      amount: parseFloat(amount.toFixed(2)),
+      percentage: parseFloat(percentage.toFixed(2))
+    };
   }
 
   // Search products

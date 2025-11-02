@@ -1,5 +1,5 @@
 import sqlite3 from 'sqlite3';
-import { initializeDatabase, dbPath } from '../config/database'; // Use advanced config
+import { initializeDatabase, dbPath } from '../config/database';  
 
 class DatabaseService {
   private static instance: DatabaseService;
@@ -46,7 +46,7 @@ class DatabaseService {
     });
   }
 
-  // Utility method for running queries with better error handling
+  // Utility method for running queries with better error  
   public run(query: string, params: any[] = []): Promise<{ lastID?: number; changes?: number }> {
     return new Promise((resolve, reject) => {
       this.getDatabase().run(query, params, function(err) {

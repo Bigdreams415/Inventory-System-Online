@@ -2,7 +2,7 @@
   "name": "pos-inventory",
   "version": "0.1.0",
   "private": true,
-  "main": "public/electron.js",
+  "main": "electron/main.js",
   "dependencies": {
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
@@ -28,7 +28,8 @@
     "eject": "react-scripts eject",
     "electron": "electron .",
     "electron-dev": "concurrently \"npm start\" \"wait-on http://localhost:3000 && electron .\"",
-    "build-electron": "npm run build && electron-builder"
+    "build-electron": "npm run build && electron-builder",
+    "dev": "concurrently \"npm start\" \"cd server && npm run dev\""
   },
   "eslintConfig": {
     "extends": [

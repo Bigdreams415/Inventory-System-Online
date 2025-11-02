@@ -51,32 +51,17 @@ export class ProductController {
     }
   }
 
-  // Create new product
+  // Create new product - UPDATED VALIDATION
   static async createProduct(req: Request, res: Response) {
     try {
       const productData = req.body;
       
-      // Validation
-      if (!productData.name || !productData.price || !productData.category) {
+      // Enhanced validation with new fields
+      const validation = ProductModel.validateProductData(productData);
+      if (!validation.isValid) {
         const response: ApiResponse<null> = {
           success: false,
-          error: 'Name, price, and category are required'
-        };
-        return res.status(400).json(response);
-      }
-
-      if (productData.price < 0) {
-        const response: ApiResponse<null> = {
-          success: false,
-          error: 'Price cannot be negative'
-        };
-        return res.status(400).json(response);
-      }
-
-      if (productData.stock < 0) {
-        const response: ApiResponse<null> = {
-          success: false,
-          error: 'Stock cannot be negative'
+          error: validation.errors.join(', ')
         };
         return res.status(400).json(response);
       }
@@ -98,7 +83,7 @@ export class ProductController {
     }
   }
 
-  // Update product
+  // Update product - UPDATED VALIDATION
   static async updateProduct(req: Request, res: Response) {
     try {
       const { id } = req.params;
@@ -112,6 +97,55 @@ export class ProductController {
           error: 'Product not found'
         };
         return res.status(404).json(response);
+      }
+
+      // Validate update data (partial validation)
+      if (productData.buy_price !== undefined && productData.buy_price < 0) {
+        const response: ApiResponse<null> = {
+          success: false,
+          error: 'Buy price cannot be negative'
+        };
+        return res.status(400).json(response);
+      }
+
+      if (productData.sell_price !== undefined && productData.sell_price < 0) {
+        const response: ApiResponse<null> = {
+          success: false,
+          error: 'Sell price cannot be negative'
+        };
+        return res.status(400).json(response);
+      }
+
+      // Validate price relationship if both are provided
+      if (productData.buy_price !== undefined && productData.sell_price !== undefined) {
+        if (productData.buy_price > productData.sell_price) {
+          const response: ApiResponse<null> = {
+            success: false,
+            error: 'Sell price must be greater than or equal to buy price'
+          };
+          return res.status(400).json(response);
+        }
+      }
+
+      // Validate price relationship if only one is provided
+      if (productData.buy_price !== undefined && productData.sell_price === undefined) {
+        if (productData.buy_price > existingProduct.sell_price) {
+          const response: ApiResponse<null> = {
+            success: false,
+            error: 'Buy price cannot be greater than current sell price'
+          };
+          return res.status(400).json(response);
+        }
+      }
+
+      if (productData.sell_price !== undefined && productData.buy_price === undefined) {
+        if (existingProduct.buy_price > productData.sell_price) {
+          const response: ApiResponse<null> = {
+            success: false,
+            error: 'Sell price cannot be less than current buy price'
+          };
+          return res.status(400).json(response);
+        }
       }
 
       const updatedProduct = await ProductModel.update(id, productData);
@@ -131,12 +165,11 @@ export class ProductController {
     }
   }
 
-  // Delete product
+  // Delete product (unchanged)
   static async deleteProduct(req: Request, res: Response) {
     try {
       const { id } = req.params;
 
-      // Check if product exists
       const existingProduct = await ProductModel.getById(id);
       if (!existingProduct) {
         const response: ApiResponse<null> = {
@@ -162,7 +195,7 @@ export class ProductController {
     }
   }
 
-  // Search products
+  // Search products (unchanged)
   static async searchProducts(req: Request, res: Response) {
     try {
       const { q } = req.query;
@@ -191,7 +224,7 @@ export class ProductController {
     }
   }
 
-  // Update stock
+  // Update stock (unchanged)
   static async updateStock(req: Request, res: Response) {
     try {
       const { id } = req.params;
@@ -205,7 +238,6 @@ export class ProductController {
         return res.status(400).json(response);
       }
 
-      // Check if product exists
       const existingProduct = await ProductModel.getById(id);
       if (!existingProduct) {
         const response: ApiResponse<null> = {
@@ -226,6 +258,63 @@ export class ProductController {
       const response: ApiResponse<null> = {
         success: false,
         error: 'Failed to update stock'
+      };
+      res.status(500).json(response);
+    }
+  }
+
+  // NEW: Get products with profit margin (for future dashboard)
+  static async getProductsWithMargin(req: Request, res: Response) {
+    try {
+      const products = await ProductModel.getAll();
+      
+      // Calculate profit margin for each product
+      const productsWithMargin = products.map(product => {
+        const margin = ProductModel.calculateMargin(product.buy_price, product.sell_price);
+        return {
+          ...product,
+          profit_margin: margin
+        };
+      });
+
+      const response: ApiResponse<any[]> = {
+        success: true,
+        data: productsWithMargin
+      };
+      res.json(response);
+    } catch (error) {
+      console.error('Error getting products with margin:', error);
+      const response: ApiResponse<null> = {
+        success: false,
+        error: 'Failed to fetch products with margin data'
+      };
+      res.status(500).json(response);
+    }
+  }
+
+  // NEW: Get low stock products with enhanced info
+  static async getLowStockProducts(req: Request, res: Response) {
+    try {
+      const { threshold = 10 } = req.query;
+      const thresholdNum = parseInt(threshold as string, 10) || 10;
+
+      const products = await ProductModel.getLowStock(thresholdNum);
+      
+      const productsWithValue = products.map(product => ({
+        ...product,
+        stock_value: product.buy_price * product.stock
+      }));
+
+      const response: ApiResponse<any[]> = {
+        success: true,
+        data: productsWithValue
+      };
+      res.json(response);
+    } catch (error) {
+      console.error('Error getting low stock products:', error);
+      const response: ApiResponse<null> = {
+        success: false,
+        error: 'Failed to fetch low stock products'
       };
       res.status(500).json(response);
     }
