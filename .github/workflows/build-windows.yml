@@ -24,35 +24,40 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install dependencies
+      # Install frontend dependencies
+      - name: Install frontend dependencies
         run: npm install
 
-      - name: Install Server Dependencies
+      # Build frontend
+      - name: Build frontend
+        run: npm run build
+
+      # Install server dependencies
+      - name: Install server dependencies
         run: |
           cd server
-          npm install --production
+          npm install
           cd ..
 
-      - name: Rebuild Native Modules for Main App
+      # Optional: Build server (if using TypeScript or build scripts)
+      - name: Build server
+        run: |
+          cd server
+          if [ -f package.json ] && grep -q "\"build\":" package.json; then
+            npm run build
+          fi
+          cd ..
+
+      # Rebuild Electron native modules
+      - name: Rebuild native modules for Electron
         run: npx electron-rebuild --force --parallel
 
-      - name: Rebuild Native Modules for Server
+      # Build Electron app for Windows (portable)
+      - name: Build Electron app (unsigned)
         run: |
-          cd server
-          npm rebuild
-          cd ..
-
-      - name: Build Server
-        run: |
-          cd server
-          npm run build
-          cd ..
-
-      - name: Build Electron App for Windows (unsigned)
-        run: |
-          npm run build
           npx electron-builder --win --x64 --publish=never
 
+      # Upload artifact including server with dependencies
       - name: Upload Windows Build Artifact
         uses: actions/upload-artifact@v4
         with:
