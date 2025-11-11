@@ -20,6 +20,7 @@ const Inventory: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
 
   useEffect(() => {
     const filtered = products.filter(product =>
@@ -91,14 +92,41 @@ const Inventory: React.FC = () => {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4 mb-6">
         <h2 className="text-2xl font-bold text-gray-800">Inventory Management</h2>
-        <button 
-          onClick={() => setShowAddForm(true)}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
-        >
-          Add Product
-        </button>
+        <div className="flex gap-3">
+          {/* View Mode Toggle - Mobile Only */}
+          <div className="lg:hidden flex items-center gap-2">
+            <button
+              onClick={() => setViewMode('table')}
+              className={`px-3 py-2 rounded-lg text-sm font-medium ${
+                viewMode === 'table' 
+                  ? 'bg-blue-600 text-white' 
+                  : 'bg-gray-200 text-gray-700'
+              }`}
+            >
+              List
+            </button>
+            <button
+              onClick={() => setViewMode('grid')}
+              className={`px-3 py-2 rounded-lg text-sm font-medium ${
+                viewMode === 'grid' 
+                  ? 'bg-blue-600 text-white' 
+                  : 'bg-gray-200 text-gray-700'
+              }`}
+            >
+              Grid
+            </button>
+          </div>
+          
+          <button 
+            onClick={() => setShowAddForm(true)}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center gap-2"
+          >
+            <span>+</span>
+            <span>Add Product</span>
+          </button>
+        </div>
       </div>
 
       {/* Error Messages */}
@@ -121,12 +149,17 @@ const Inventory: React.FC = () => {
           placeholder="Search products by name, category, or barcode..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         />
       </div>
 
-      {/* Products Table */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+      {/* Products Count */}
+      <div className="mb-4 text-sm text-gray-600">
+        {filteredProducts.length} product{filteredProducts.length !== 1 ? 's' : ''} found
+      </div>
+
+      {/* Desktop Table View */}
+      <div className="hidden lg:block bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
         {filteredProducts.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
             {searchTerm ? 'No products match your search.' : 'No products found. Add your first product!'}
@@ -141,9 +174,9 @@ const Inventory: React.FC = () => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Category
                 </th>
-                {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Buy Price
-                </th> */}
+                </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Sell Price
                 </th>
@@ -212,11 +245,11 @@ const Inventory: React.FC = () => {
                       <button
                         onClick={() => setEditingProduct(product)}
                         className="text-blue-600 hover:text-blue-900"
-                        disabled={!isAdmin} // Disable if not admin
+                        disabled={!isAdmin}
                       >
                         Edit
                       </button>
-                      {isAdmin && ( // Only show delete button if admin
+                      {isAdmin && (
                         <button
                           onClick={() => handleDeleteProduct(product.id)}
                           className="text-red-600 hover:text-red-900"
@@ -230,6 +263,160 @@ const Inventory: React.FC = () => {
               })}
             </tbody>
           </table>
+        )}
+      </div>
+
+      {/* Mobile Views */}
+      <div className="lg:hidden">
+        {/* Mobile Table View */}
+        {viewMode === 'table' && filteredProducts.length > 0 && (
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+            <div className="divide-y divide-gray-200">
+              {filteredProducts.map((product) => {
+                const profitMargin = product.sell_price - product.buy_price;
+                const profitPercentage = (profitMargin / product.buy_price) * 100;
+                
+                return (
+                  <div key={product.id} className="p-4 hover:bg-gray-50">
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="flex-1">
+                        <div className="font-medium text-gray-900">{product.name}</div>
+                        <div className="text-sm text-gray-500">{product.category}</div>
+                        {product.barcode && (
+                          <div className="text-xs text-gray-500">Barcode: {product.barcode}</div>
+                        )}
+                      </div>
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                        product.stock > 10 ? 'bg-green-100 text-green-800' : 
+                        product.stock > 0 ? 'bg-yellow-100 text-yellow-800' : 
+                        'bg-red-100 text-red-800'
+                      }`}>
+                        {product.stock}
+                      </span>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4 text-sm mb-3">
+                      <div>
+                        <div className="text-gray-600">Buy Price</div>
+                        <div className="font-medium">₦{product.buy_price.toFixed(2)}</div>
+                      </div>
+                      <div>
+                        <div className="text-gray-600">Sell Price</div>
+                        <div className="font-medium text-green-900">₦{product.sell_price.toFixed(2)}</div>
+                      </div>
+                      <div>
+                        <div className="text-gray-600">Profit</div>
+                        <div className={`font-medium ${profitMargin >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          ₦{profitMargin.toFixed(2)}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-gray-600">Margin</div>
+                        <div className={`font-medium ${profitPercentage >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          {profitPercentage.toFixed(1)}%
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex justify-between items-center text-xs text-gray-500">
+                      <div>Updated: {formatDate(product.updated_at)}</div>
+                      <div className="space-x-3">
+                        <button
+                          onClick={() => setEditingProduct(product)}
+                          className="text-blue-600 hover:text-blue-900 font-medium"
+                          disabled={!isAdmin}
+                        >
+                          Edit
+                        </button>
+                        {isAdmin && (
+                          <button
+                            onClick={() => handleDeleteProduct(product.id)}
+                            className="text-red-600 hover:text-red-900 font-medium"
+                          >
+                            Delete
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Mobile Grid View */}
+        {viewMode === 'grid' && filteredProducts.length > 0 && (
+          <div className="grid grid-cols-2 gap-4">
+            {filteredProducts.map((product) => {
+              const profitMargin = product.sell_price - product.buy_price;
+              
+              return (
+                <div key={product.id} className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                  <div className="mb-3">
+                    <div className="font-medium text-gray-900 text-sm mb-1">{product.name}</div>
+                    <div className="text-xs text-gray-500 mb-2">{product.category}</div>
+                    {product.barcode && (
+                      <div className="text-xs text-gray-400">📋 {product.barcode}</div>
+                    )}
+                  </div>
+                  
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Buy:</span>
+                      <span className="font-medium">₦{product.buy_price.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Sell:</span>
+                      <span className="font-medium text-green-900">₦{product.sell_price.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Profit:</span>
+                      <span className={`font-medium ${profitMargin >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        ₦{profitMargin.toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-3 pt-3 border-t border-gray-200">
+                    <div className="flex justify-between items-center">
+                      <span className={`text-xs font-semibold px-2 py-1 rounded-full ${
+                        product.stock > 10 ? 'bg-green-100 text-green-800' : 
+                        product.stock > 0 ? 'bg-yellow-100 text-yellow-800' : 
+                        'bg-red-100 text-red-800'
+                      }`}>
+                        Stock: {product.stock}
+                      </span>
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={() => setEditingProduct(product)}
+                          className="text-blue-600 hover:text-blue-900 text-xs font-medium"
+                          disabled={!isAdmin}
+                        >
+                          Edit
+                        </button>
+                        {isAdmin && (
+                          <button
+                            onClick={() => handleDeleteProduct(product.id)}
+                            className="text-red-600 hover:text-red-900 text-xs font-medium"
+                          >
+                            Delete
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Empty State for Mobile */}
+        {filteredProducts.length === 0 && (
+          <div className="text-center py-8 text-gray-500 bg-white rounded-lg shadow-sm border border-gray-200">
+            {searchTerm ? 'No products match your search.' : 'No products found. Add your first product!'}
+          </div>
         )}
       </div>
 
@@ -263,12 +450,12 @@ const Inventory: React.FC = () => {
   );
 };
 
-// Updated Product Form Component with Barcode Scanner Features
+// ProductForm Component (Mobile Optimized)
 interface ProductFormProps {
   product?: Product;
   onSave: (product: Product | Omit<Product, 'id'>) => Promise<void>;
   onCancel: () => void;
-  onEditExisting?: (product: Product) => void; // New prop to handle switching to edit mode
+  onEditExisting?: (product: Product) => void;
 }
 
 const ProductForm: React.FC<ProductFormProps> = ({ 
@@ -289,7 +476,6 @@ const ProductForm: React.FC<ProductFormProps> = ({
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [barcodeError, setBarcodeError] = useState<string | null>(null);
-  //eslint-disable-next-line react-hooks/exhaustive-deps
   const [, setBarcodeLoading] = useState(false);
   const barcodeInputRef = useRef<HTMLInputElement>(null);
 
@@ -303,7 +489,6 @@ const ProductForm: React.FC<ProductFormProps> = ({
   // Auto-fill form when product is scanned
   useEffect(() => {
     if (scannedProduct && !product) {
-      // Only auto-fill when adding new product (not editing)
       setFormData(prev => ({
         ...prev,
         name: scannedProduct.name,
@@ -316,7 +501,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
     }
   }, [scannedProduct, product]);
 
-  // Handle barcode input (from scanner or manual)
+  // Handle barcode input
   const handleBarcodeInput = async (barcode: string) => {
     if (!barcode.trim()) return;
     
@@ -332,7 +517,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
     }
   };
 
-  // Handle barcode field blur (when user leaves the field)
+  // Handle barcode field blur
   const handleBarcodeBlur = (e: React.FocusEvent<HTMLInputElement>) => {
     const barcode = e.target.value.trim();
     if (barcode && barcode !== product?.barcode) {
@@ -340,7 +525,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
     }
   };
 
-  // Handle form submission with barcode validation
+  // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -443,7 +628,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
               required
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               disabled={isSubmitting}
             />
           </div>
@@ -457,7 +642,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
               required
               value={formData.category}
               onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               disabled={isSubmitting}
             />
           </div>
@@ -474,7 +659,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
                 required
                 value={formData.buy_price}
                 onChange={(e) => setFormData({ ...formData, buy_price: parseFloat(e.target.value) || 0 })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 disabled={isSubmitting}
               />
             </div>
@@ -490,7 +675,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
                 required
                 value={formData.sell_price}
                 onChange={(e) => setFormData({ ...formData, sell_price: parseFloat(e.target.value) || 0 })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 disabled={isSubmitting}
               />
             </div>
@@ -525,7 +710,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
               required
               value={formData.stock}
               onChange={(e) => setFormData({ ...formData, stock: parseInt(e.target.value) || 0 })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               disabled={isSubmitting}
             />
           </div>
@@ -541,10 +726,10 @@ const ProductForm: React.FC<ProductFormProps> = ({
                 value={formData.barcode}
                 onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
                 onBlur={handleBarcodeBlur}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 disabled={isSubmitting}
                 placeholder="Scan barcode or type manually"
-                autoFocus={!product} // Auto-focus on barcode field for new products
+                autoFocus={!product}
               />
               {barcodeScanLoading && (
                 <p className="text-sm text-blue-600 flex items-center">
@@ -567,7 +752,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               disabled={isSubmitting}
               placeholder="Product description..."
             />
@@ -577,14 +762,14 @@ const ProductForm: React.FC<ProductFormProps> = ({
             <button
               type="button"
               onClick={onCancel}
-              className="px-4 py-2 text-gray-600 hover:text-gray-800 font-medium"
+              className="px-4 py-3 text-gray-600 hover:text-gray-800 font-medium"
               disabled={isSubmitting}
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={isSubmitting}
             >
               {isSubmitting ? 'Saving...' : (product ? 'Update Product' : 'Add Product')}

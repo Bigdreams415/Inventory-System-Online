@@ -20,6 +20,9 @@ const PointOfSale: React.FC = () => {
   const [showReceiptModal, setShowReceiptModal] = useState(false);
   const receiptRef = useRef<HTMLDivElement>(null);
 
+  // Mobile state
+  const [activeTab, setActiveTab] = useState<'products' | 'cart'>('products');
+
   // Get unique categories for filter
   const categories = ['all', ...Array.from(new Set(products.map(product => product.category)))];
 
@@ -52,7 +55,7 @@ const PointOfSale: React.FC = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scannedProduct, productsLoading]);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+
   // Clear success message after 5 seconds
   useEffect(() => {
     if (saleSuccess) {
@@ -84,9 +87,14 @@ const PointOfSale: React.FC = () => {
       return [...prevCart, { 
         product, 
         quantity: 1,
-        unit_price: product.sell_price
+        unit_price: product.sell_price || 0
       }];
     });
+    
+    // Switch to cart tab on mobile when item is added
+    if (window.innerWidth < 1024) {
+      setActiveTab('cart');
+    }
   };
 
   // Function to remove item from cart
@@ -112,7 +120,7 @@ const PointOfSale: React.FC = () => {
   };
 
   // Calculate totals
-  const subtotal = cart.reduce((sum, item) => sum + (item.unit_price * item.quantity), 0);
+  const subtotal = cart.reduce((sum, item) => sum + ((item.unit_price || 0) * item.quantity), 0);
 
   // Function to process sale
   const handleProcessSale = async () => {
@@ -128,7 +136,7 @@ const PointOfSale: React.FC = () => {
         items: cart.map(item => ({
           product_id: item.product.id,
           quantity: item.quantity,
-          unit_sell_price: item.unit_price
+          unit_sell_price: item.unit_price || 0
         })),
         payment_method: paymentMethod
       };
@@ -140,7 +148,7 @@ const PointOfSale: React.FC = () => {
       setLastSale(result);
       
       // Success!
-      setSaleSuccess(`Sale processed successfully! Total: ₦${result.total_amount.toFixed(2)}`);
+      setSaleSuccess(`Sale processed successfully! Total: ₦${(result.total_amount || 0).toFixed(2)}`);
       setCart([]);
       setShowPaymentModal(false);
       setPaymentMethod('cash');
@@ -267,6 +275,10 @@ const PointOfSale: React.FC = () => {
   const closeReceiptAndContinue = () => {
     setShowReceiptModal(false);
     setLastSale(null);
+    // Switch back to products tab on mobile
+    if (window.innerWidth < 1024) {
+      setActiveTab('products');
+    }
   };
 
   const clearCart = () => {
@@ -290,7 +302,7 @@ const PointOfSale: React.FC = () => {
   }
 
   return (
-    <div>
+    <div className="pb-20 lg:pb-0">
       <h2 className="text-2xl font-bold text-gray-800 mb-6">Point of Sale</h2>
       
       {/* Success Message */}
@@ -342,16 +354,42 @@ const PointOfSale: React.FC = () => {
                 📦 Added to cart: {scannedProduct.name}
               </p>
               <p className="text-xs text-green-600 mt-1">
-                Price: ₦{scannedProduct.sell_price.toFixed(2)} | Stock: {scannedProduct.stock}
+                Price: ₦{(scannedProduct.sell_price || 0).toFixed(2)} | Stock: {scannedProduct.stock}
               </p>
             </div>
           </div>
         </div>
       )}
 
+      {/* Mobile Tabs */}
+      <div className="lg:hidden mb-4">
+        <div className="flex border-b border-gray-200">
+          <button
+            className={`flex-1 py-3 text-center font-medium ${
+              activeTab === 'products'
+                ? 'text-blue-600 border-b-2 border-blue-600'
+                : 'text-gray-500'
+            }`}
+            onClick={() => setActiveTab('products')}
+          >
+            Products ({filteredProducts.length})
+          </button>
+          <button
+            className={`flex-1 py-3 text-center font-medium ${
+              activeTab === 'cart'
+                ? 'text-blue-600 border-b-2 border-blue-600'
+                : 'text-gray-500'
+            }`}
+            onClick={() => setActiveTab('cart')}
+          >
+            Cart ({cart.reduce((sum, item) => sum + item.quantity, 0)})
+          </button>
+        </div>
+      </div>
+
       {/* Search and Filter Section */}
       <div className="mb-6 space-y-4">
-        <div className="flex gap-4">
+        <div className="flex flex-col sm:flex-row gap-4">
           <div className="flex-1">
             <input
               type="text"
@@ -359,7 +397,7 @@ const PointOfSale: React.FC = () => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               onKeyDown={handleSearchKeyDown}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               autoFocus
             />
           </div>
@@ -367,7 +405,7 @@ const PointOfSale: React.FC = () => {
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
             {categories.map(category => (
               <option key={category} value={category}>
@@ -403,7 +441,8 @@ const PointOfSale: React.FC = () => {
         )}
       </div>
 
-      <div className="grid grid-cols-3 gap-6">
+      {/* Desktop Layout */}
+      <div className="hidden lg:grid lg:grid-cols-3 lg:gap-6">
         {/* Products Grid */}
         <div className="col-span-2 bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <h3 className="text-lg font-semibold mb-4">
@@ -429,10 +468,12 @@ const PointOfSale: React.FC = () => {
                   onClick={() => product.stock > 0 && addToCart(product)}
                 >
                   <p className="font-medium text-gray-800">{product.name}</p>
-                  <p className="text-sm text-gray-600">₦{product.sell_price.toFixed(2)}</p>
+                  <p className="text-sm text-gray-600">
+                    ₦{(product.sell_price || 0).toFixed(2)}
+                  </p>
                   <p className="text-xs text-gray-500">
                     Stock: {product.stock} | 
-                    Cost: ₦{product.buy_price.toFixed(2)}
+                    Cost: ₦{(product.buy_price || 0).toFixed(2)}
                   </p>
                   {product.stock <= 0 && (
                     <p className="text-xs text-red-600 mt-1">Out of Stock</p>
@@ -471,11 +512,8 @@ const PointOfSale: React.FC = () => {
                   <div className="flex-1">
                     <p className="font-medium text-sm">{item.product.name}</p>
                     <p className="text-xs text-gray-600">
-                      ₦{item.unit_price.toFixed(2)} × {item.quantity}
+                      ₦{(item.unit_price || 0).toFixed(2)} × {item.quantity}
                     </p>
-                    {/* <p className="text-xs text-green-600">
-                      Profit: ₦{((item.unit_price - item.product.buy_price) * item.quantity).toFixed(2)}
-                    </p> */}
                   </div>
                   <div className="flex items-center space-x-2">
                     <button
@@ -509,11 +547,6 @@ const PointOfSale: React.FC = () => {
               <span>Total:</span>
               <span>₦{subtotal.toFixed(2)}</span>
             </div>
-
-            {/* <div className="flex justify-between text-sm text-green-600">
-              <span>Estimated Profit:</span>
-              <span>₦{totalProfit.toFixed(2)}</span>
-            </div> */}
             
             <button
               className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed mt-4"
@@ -524,6 +557,127 @@ const PointOfSale: React.FC = () => {
             </button>
           </div>
         </div>
+      </div>
+
+      {/* Mobile Layout */}
+      <div className="lg:hidden">
+        {/* Products Tab */}
+        {activeTab === 'products' && (
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+            <h3 className="text-lg font-semibold mb-4">
+              Products ({filteredProducts.length})
+            </h3>
+            
+            {filteredProducts.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                {searchTerm || selectedCategory !== 'all' 
+                  ? 'No products match your filters.' 
+                  : 'No products available.'}
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-3 max-h-[500px] overflow-y-auto">
+                {filteredProducts.map((product) => (
+                  <div
+                    key={product.id}
+                    className={`bg-gray-50 rounded-lg p-3 text-center cursor-pointer transition-colors ${
+                      product.stock > 0 
+                        ? 'hover:bg-gray-100 active:bg-gray-200' 
+                        : 'opacity-50 cursor-not-allowed'
+                    }`}
+                    onClick={() => product.stock > 0 && addToCart(product)}
+                  >
+                    <p className="font-medium text-gray-800 text-sm">{product.name}</p>
+                    <p className="text-sm text-gray-600">₦{(product.sell_price || 0).toFixed(2)}</p>
+                    <p className="text-xs text-gray-500">
+                      Stock: {product.stock}
+                    </p>
+                    {product.stock <= 0 && (
+                      <p className="text-xs text-red-600 mt-1">Out of Stock</p>
+                    )}
+                    {product.stock > 0 && product.stock <= 5 && (
+                      <p className="text-xs text-yellow-600 mt-1">Low Stock</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Cart Tab */}
+        {activeTab === 'cart' && (
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">
+                Cart ({cart.reduce((sum, item) => sum + item.quantity, 0)} items)
+              </h3>
+              {cart.length > 0 && (
+                <button
+                  onClick={clearCart}
+                  className="text-sm text-red-600 hover:text-red-800"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+            
+            <div className="space-y-3 mb-4 max-h-[400px] overflow-y-auto">
+              {cart.length === 0 ? (
+                <p className="text-gray-500 text-center py-8">No Medicines in Cart</p>
+              ) : (
+                cart.map((item) => (
+                  <div key={item.product.id} className="flex items-center justify-between border-b pb-3">
+                    <div className="flex-1">
+                      <p className="font-medium text-sm">{item.product.name}</p>
+                      <p className="text-xs text-gray-600">
+                        ₦{(item.unit_price || 0).toFixed(2)} × {item.quantity}
+                      </p>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <button
+                        className="w-8 h-8 flex items-center justify-center bg-gray-200 rounded-lg hover:bg-gray-300 active:bg-gray-400"
+                        onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
+                      >
+                        -
+                      </button>
+                      <span className="text-sm w-6 text-center">{item.quantity}</span>
+                      <button
+                        className="w-8 h-8 flex items-center justify-center bg-gray-200 rounded-lg hover:bg-gray-300 active:bg-gray-400"
+                        onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
+                      >
+                        +
+                      </button>
+                      <button
+                        className="text-red-500 hover:text-red-700 ml-2 p-1"
+                        onClick={() => removeFromCart(item.product.id)}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Totals and Checkout */}
+            {cart.length > 0 && (
+              <div className="mt-6 space-y-3 border-t pt-4">
+                <div className="flex justify-between text-lg font-semibold">
+                  <span>Total:</span>
+                  <span>₦{subtotal.toFixed(2)}</span>
+                </div>
+                
+                <button
+                  className="w-full bg-blue-600 text-white py-4 rounded-lg font-semibold hover:bg-blue-700 active:bg-blue-800 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed mt-2"
+                  onClick={handleProcessSale}
+                  disabled={cart.length === 0 || salesLoading}
+                >
+                  {salesLoading ? 'Processing...' : 'Process Sale'}
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Payment Method Modal */}
@@ -553,10 +707,6 @@ const PointOfSale: React.FC = () => {
                 <span>Total Amount:</span>
                 <span className="font-semibold">₦{subtotal.toFixed(2)}</span>
               </div>
-              {/* <div className="flex justify-between text-sm text-green-600">
-                <span>Estimated Profit:</span>
-                <span className="font-semibold">₦{totalProfit.toFixed(2)}</span>
-              </div> */}
             </div>
 
             <div className="flex justify-end space-x-3">
@@ -609,11 +759,10 @@ const PointOfSale: React.FC = () => {
                   {lastSale.items?.map((item, index) => (
                     <div key={index} className="item-row">
                       <div className="item-name">
-                        {/* Now we can use the product_name from the backend */}
                         {item.product_name || 'Medicine'}
                       </div>
-                      <div className="item-details">{item.quantity} × ₦{item.unit_sell_price.toFixed(2)}</div>
-                      <div className="item-details">₦{item.total_sell_price.toFixed(2)}</div>
+                      <div className="item-details">{item.quantity} × ₦{(item.unit_sell_price || 0).toFixed(2)}</div>
+                      <div className="item-details">₦{(item.total_sell_price || 0).toFixed(2)}</div>
                     </div>
                   ))}
               </div>
@@ -621,7 +770,7 @@ const PointOfSale: React.FC = () => {
               <div className="totals">
                 <div className="total-row">
                   <div>Subtotal:</div>
-                  <div>₦{lastSale.total_amount.toFixed(2)}</div>
+                  <div>₦{(lastSale.total_amount || 0).toFixed(2)}</div>
                 </div>
                 <div className="total-row">
                   <div>Tax (0%):</div>
@@ -629,7 +778,7 @@ const PointOfSale: React.FC = () => {
                 </div>
                 <div className="total-row">
                   <div><strong>Total:</strong></div>
-                  <div><strong>₦{lastSale.total_amount.toFixed(2)}</strong></div>
+                  <div><strong>₦{(lastSale.total_amount || 0).toFixed(2)}</strong></div>
                 </div>
                 <div className="total-row">
                   <div>Payment:</div>
@@ -657,7 +806,7 @@ const PointOfSale: React.FC = () => {
                 Transaction #{lastSale.id}
               </div>
               <div className="text-lg font-bold mt-2">
-                Total: ₦{lastSale.total_amount.toFixed(2)}
+                Total: ₦{(lastSale.total_amount || 0).toFixed(2)}
               </div>
               <div className="text-sm text-gray-600 mt-1">
                 Payment: {lastSale.payment_method.toUpperCase()}

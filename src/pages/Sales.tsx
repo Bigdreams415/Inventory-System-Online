@@ -4,8 +4,7 @@ import { Sale } from '../types';
 import { useSales } from '../hooks/useSales';
 
 const Sales: React.FC = () => {
-  //eslint-disable-next-line react-hooks/exhaustive-deps
-  const { getSales, } = useSales();
+  const { getSales } = useSales();
   const [sales, setSales] = useState<Sale[]>([]);
   const [selectedSale, setSelectedSale] = useState<Sale | null>(null);
   const [dateFilter, setDateFilter] = useState<string>('');
@@ -31,7 +30,7 @@ const Sales: React.FC = () => {
 
   useEffect(() => {
     loadSales();
-    //eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Fixed date filtering - handles different date formats
@@ -40,11 +39,9 @@ const Sales: React.FC = () => {
         if (!sale.created_at) return false;
         
         try {
-          // Handle both ISO format and database timestamp format
           const saleDate = new Date(sale.created_at);
-          const filterDate = new Date(dateFilter + 'T00:00:00'); // Add time to ensure same day
+          const filterDate = new Date(dateFilter + 'T00:00:00');
           
-          // Compare year, month, and day only
           return saleDate.toISOString().split('T')[0] === filterDate.toISOString().split('T')[0];
         } catch (error) {
           console.error('Date parsing error:', error);
@@ -52,19 +49,6 @@ const Sales: React.FC = () => {
         }
       })
     : sales;
-
-  // Get unique dates from sales for calendar
-  //eslint-disable-next-line react-hooks/exhaustive-deps
-  // const getSalesDates = () => {
-  //   const dates = new Set();
-  //   sales.forEach(sale => {
-  //     if (sale.created_at) {
-  //       const date = new Date(sale.created_at).toISOString().split('T')[0];
-  //       dates.add(date);
-  //     }
-  //   });
-  //   return Array.from(dates) as string[];
-  // };
 
   // Enhanced calendar functions
   const getCalendarDays = () => {
@@ -77,10 +61,10 @@ const Sales: React.FC = () => {
     
     const days = [];
     const startDate = new Date(firstDay);
-    startDate.setDate(startDate.getDate() - firstDay.getDay()); // Start from Sunday
+    startDate.setDate(startDate.getDate() - firstDay.getDay());
     
     const endDate = new Date(lastDay);
-    endDate.setDate(endDate.getDate() + (6 - lastDay.getDay())); // End on Saturday
+    endDate.setDate(endDate.getDate() + (6 - lastDay.getDay()));
     
     const current = new Date(startDate);
     while (current <= endDate) {
@@ -129,26 +113,26 @@ const Sales: React.FC = () => {
     if (salesCount <= 5) return 'bg-green-300 hover:bg-green-400';
     return 'bg-green-500 text-white hover:bg-green-600';
   };
-  //eslint-disable-next-line react-hooks/exhaustive-deps
+
   const calendarDays = getCalendarDays();
   const today = new Date();
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4">
         <div>
           <h2 className="text-2xl font-bold text-gray-800">Sales History</h2>
           <p className="text-gray-600 mt-1">View and manage all sales transactions</p>
         </div>
         
         {/* Enhanced Filter Section */}
-        <div className="flex items-center space-x-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
           <div className="relative">
             <label htmlFor="date-filter" className="block text-sm font-medium text-gray-700 mb-1">
               Filter by Date
             </label>
-            <div className="flex space-x-2">
+            <div className="flex flex-col sm:flex-row gap-2">
               <input
                 type="date"
                 id="date-filter"
@@ -164,9 +148,9 @@ const Sales: React.FC = () => {
               </button>
             </div>
 
-            {/* Enhanced Calendar Dropdown */}
+            {/* Enhanced Calendar Dropdown - Fixed positioning */}
             {showCalendar && (
-              <div className="absolute top-full right-0 mt-2 bg-white border border-gray-300 rounded-lg shadow-xl z-50 p-4 w-80">
+              <div className="fixed sm:absolute top-1/2 left-1/2 sm:top-full sm:left-0 sm:right-auto mt-2 bg-white border border-gray-300 rounded-lg shadow-xl z-50 p-4 w-[90vw] sm:w-80 lg:w-96 transform -translate-x-1/2 sm:translate-x-0 sm:transform-none">
                 <div className="flex justify-between items-center mb-4">
                   <h3 className="font-semibold text-gray-800">
                     {format(today, 'MMMM yyyy')}
@@ -234,7 +218,7 @@ const Sales: React.FC = () => {
                 
                 {/* Sales Legend */}
                 <div className="mt-4 pt-4 border-t border-gray-200">
-                  <div className="flex justify-between text-xs text-gray-600">
+                  <div className="flex flex-col sm:flex-row sm:justify-between gap-2 text-xs text-gray-600">
                     <div className="flex items-center">
                       <div className="w-3 h-3 bg-green-100 rounded mr-1"></div>
                       <span>1-2 sales</span>
@@ -254,9 +238,9 @@ const Sales: React.FC = () => {
           </div>
           
           {(dateFilter) && (
-            <div className="flex items-center space-x-2 mt-6">
+            <div className="flex items-center space-x-2 mt-2 sm:mt-6">
               <span className="text-sm text-gray-600 bg-blue-50 px-3 py-1 rounded">
-                Showing: {format(new Date(dateFilter), 'MMM dd, yyyy')}
+                {format(new Date(dateFilter), 'MMM dd, yyyy')}
               </span>
               <button
                 onClick={clearFilters}
@@ -270,63 +254,63 @@ const Sales: React.FC = () => {
       </div>
 
       {/* Sales Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 lg:p-6 hover:shadow-md transition-shadow">
           <div className="flex items-center">
             <div className="flex-shrink-0">
-              <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center">
-                <span className="text-white text-xl">💰</span>
+              <div className="w-8 h-8 lg:w-12 lg:h-12 bg-blue-500 rounded-lg flex items-center justify-center">
+                <span className="text-white text-sm lg:text-xl">💰</span>
               </div>
             </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Total Sales</p>
-              <p className="text-2xl font-semibold text-gray-900">{filteredSales.length}</p>
+            <div className="ml-3 lg:ml-4">
+              <p className="text-xs lg:text-sm font-medium text-gray-600">Total Sales</p>
+              <p className="text-lg lg:text-2xl font-semibold text-gray-900">{filteredSales.length}</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 lg:p-6 hover:shadow-md transition-shadow">
           <div className="flex items-center">
             <div className="flex-shrink-0">
-              <div className="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center">
-                <span className="text-white text-xl">📈</span>
+              <div className="w-8 h-8 lg:w-12 lg:h-12 bg-green-500 rounded-lg flex items-center justify-center">
+                <span className="text-white text-sm lg:text-xl">📈</span>
               </div>
             </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-              <p className="text-2xl font-semibold text-gray-900">
+            <div className="ml-3 lg:ml-4">
+              <p className="text-xs lg:text-sm font-medium text-gray-600">Revenue</p>
+              <p className="text-lg lg:text-2xl font-semibold text-gray-900">
                 ₦{filteredSales.reduce((sum, sale) => sum + (sale.total_amount || 0), 0).toFixed(2)}
               </p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 lg:p-6 hover:shadow-md transition-shadow">
           <div className="flex items-center">
             <div className="flex-shrink-0">
-              <div className="w-12 h-12 bg-purple-500 rounded-lg flex items-center justify-center">
-                <span className="text-white text-xl">💸</span>
+              <div className="w-8 h-8 lg:w-12 lg:h-12 bg-purple-500 rounded-lg flex items-center justify-center">
+                <span className="text-white text-sm lg:text-xl">💸</span>
               </div>
             </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Total Profit</p>
-              <p className="text-2xl font-semibold text-green-600">
+            <div className="ml-3 lg:ml-4">
+              <p className="text-xs lg:text-sm font-medium text-gray-600">Profit</p>
+              <p className="text-lg lg:text-2xl font-semibold text-green-600">
                 ₦{filteredSales.reduce((sum, sale) => sum + (sale.total_profit || 0), 0).toFixed(2)}
               </p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 lg:p-6 hover:shadow-md transition-shadow">
           <div className="flex items-center">
             <div className="flex-shrink-0">
-              <div className="w-12 h-12 bg-orange-500 rounded-lg flex items-center justify-center">
-                <span className="text-white text-xl">📦</span>
+              <div className="w-8 h-8 lg:w-12 lg:h-12 bg-orange-500 rounded-lg flex items-center justify-center">
+                <span className="text-white text-sm lg:text-xl">📦</span>
               </div>
             </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Items Sold</p>
-              <p className="text-2xl font-semibold text-gray-900">
+            <div className="ml-3 lg:ml-4">
+              <p className="text-xs lg:text-sm font-medium text-gray-600">Items Sold</p>
+              <p className="text-lg lg:text-2xl font-semibold text-gray-900">
                 {filteredSales.reduce((sum, sale) => 
                   sum + (sale.items?.reduce((itemSum, item) => itemSum + (item.quantity || 0), 0) || 0), 0
                 )}
@@ -336,8 +320,8 @@ const Sales: React.FC = () => {
         </div>
       </div>
 
-      {/* Sales Table */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+      {/* Desktop Table View */}
+      <div className="hidden lg:block bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
         {filteredSales.length === 0 ? (
           <div className="text-center py-12">
             <div className="text-gray-400 text-6xl mb-4">📊</div>
@@ -442,15 +426,79 @@ const Sales: React.FC = () => {
         )}
       </div>
 
+      {/* Mobile Card View - Simplified without toggle */}
+      <div className="lg:hidden">
+        {filteredSales.length === 0 ? (
+          <div className="text-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
+            <div className="text-gray-400 text-6xl mb-4">📊</div>
+            <p className="text-gray-500 text-lg mb-2">
+              {dateFilter ? `No sales on ${format(new Date(dateFilter), 'MMM dd, yyyy')}` : 'No sales recorded yet'}
+            </p>
+            <button
+              onClick={loadSales}
+              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+            >
+              Refresh Data
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-4">
+            {filteredSales.map((sale) => (
+              <div key={sale.id} className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                <div className="flex justify-between items-start mb-3">
+                  <div>
+                    <div className="font-medium text-gray-900 text-sm">#{sale.id?.slice(-8)}</div>
+                    <div className="text-xs text-gray-500">
+                      {sale.created_at ? format(new Date(sale.created_at), 'MMM dd, yyyy • hh:mm a') : 'N/A'}
+                    </div>
+                  </div>
+                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full capitalize ${getPaymentMethodColor(sale.payment_method || 'unknown')}`}>
+                    {sale.payment_method || 'unknown'}
+                  </span>
+                </div>
+                
+                <div className="space-y-2 text-sm mb-4">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Items:</span>
+                    <span className="font-medium">
+                      {sale.items?.reduce((sum, item) => sum + (item.quantity || 0), 0) || 0}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Revenue:</span>
+                    <span className="font-medium text-gray-900">
+                      ₦{(sale.total_amount || 0).toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Profit:</span>
+                    <span className={`font-medium ${getProfitColor(sale.total_profit || 0)}`}>
+                      ₦{(sale.total_profit || 0).toFixed(2)}
+                    </span>
+                  </div>
+                </div>
+                
+                <button
+                  onClick={() => setSelectedSale(sale)}
+                  className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                >
+                  View Sale Details
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
       {/* Enhanced Sale Details Modal */}
       {selectedSale && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-6xl max-h-[90vh] overflow-y-auto">
             {/* Header */}
-            <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+            <div className="p-4 lg:p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
               <div className="flex justify-between items-start">
                 <div>
-                  <h3 className="text-2xl font-bold text-gray-900">
+                  <h3 className="text-xl lg:text-2xl font-bold text-gray-900">
                     Sale Receipt #{selectedSale.id?.slice(-8) || 'N/A'}
                   </h3>
                   <p className="text-sm text-gray-600 mt-1">
@@ -466,18 +514,18 @@ const Sales: React.FC = () => {
               </div>
             </div>
 
-            <div className="p-6">
+            <div className="p-4 lg:p-6">
               {/* Sale Summary Cards */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                <div className="bg-white border border-gray-200 rounded-lg p-4 text-center">
-                  <p className="text-sm text-gray-600">Payment Method</p>
-                  <p className="font-semibold text-lg capitalize text-gray-900 mt-1">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4 mb-6">
+                <div className="bg-white border border-gray-200 rounded-lg p-3 lg:p-4 text-center">
+                  <p className="text-xs lg:text-sm text-gray-600">Payment Method</p>
+                  <p className="font-semibold text-sm lg:text-lg capitalize text-gray-900 mt-1">
                     {selectedSale.payment_method || 'N/A'}
                   </p>
                 </div>
-                <div className="bg-white border border-gray-200 rounded-lg p-4 text-center">
-                  <p className="text-sm text-gray-600">Status</p>
-                  <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full mt-1 ${
+                <div className="bg-white border border-gray-200 rounded-lg p-3 lg:p-4 text-center">
+                  <p className="text-xs lg:text-sm text-gray-600">Status</p>
+                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full mt-1 ${
                     selectedSale.status === 'completed' 
                       ? 'bg-green-100 text-green-800 border border-green-200' 
                       : 'bg-yellow-100 text-yellow-800 border border-yellow-200'
@@ -485,15 +533,15 @@ const Sales: React.FC = () => {
                     {selectedSale.status || 'unknown'}
                   </span>
                 </div>
-                <div className="bg-white border border-gray-200 rounded-lg p-4 text-center">
-                  <p className="text-sm text-gray-600">Total Items</p>
-                  <p className="font-semibold text-2xl text-gray-900 mt-1">
+                <div className="bg-white border border-gray-200 rounded-lg p-3 lg:p-4 text-center">
+                  <p className="text-xs lg:text-sm text-gray-600">Total Items</p>
+                  <p className="font-semibold text-lg lg:text-2xl text-gray-900 mt-1">
                     {selectedSale.items?.reduce((sum, item) => sum + (item.quantity || 0), 0) || 0}
                   </p>
                 </div>
-                <div className="bg-white border border-gray-200 rounded-lg p-4 text-center">
-                  <p className="text-sm text-gray-600">Products</p>
-                  <p className="font-semibold text-2xl text-gray-900 mt-1">
+                <div className="bg-white border border-gray-200 rounded-lg p-3 lg:p-4 text-center">
+                  <p className="text-xs lg:text-sm text-gray-600">Products</p>
+                  <p className="font-semibold text-lg lg:text-2xl text-gray-900 mt-1">
                     {selectedSale.items?.length || 0}
                   </p>
                 </div>
@@ -511,22 +559,19 @@ const Sales: React.FC = () => {
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Product Details
+                        <th className="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Product
                         </th>
-                        <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Category
+                        <th className="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Qty
                         </th>
-                        <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Quantity
+                        <th className="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Price
                         </th>
-                        <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Unit Price
+                        <th className="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Total
                         </th>
-                        <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Total Price
-                        </th>
-                        <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Profit
                         </th>
                       </tr>
@@ -534,55 +579,38 @@ const Sales: React.FC = () => {
                     <tbody className="bg-white divide-y divide-gray-200">
                       {selectedSale.items.map((item, index) => (
                         <tr key={item.id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                          <td className="px-6 py-4">
-                            <div className="flex items-center space-x-3">
-                              <div className="flex-shrink-0 w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                                <span className="text-blue-600 font-bold text-sm">
+                          <td className="px-4 lg:px-6 py-3">
+                            <div className="flex items-center space-x-2">
+                              <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                                <span className="text-blue-600 font-bold text-xs">
                                   {item.product?.name?.charAt(0) || 'P'}
                                 </span>
                               </div>
                               <div>
-                              <div className="font-medium text-gray-900 text-sm">
-                                {item.product_name || item.product?.name || `Product #${item.product_id?.slice(-6) || 'N/A'}`}
-                              </div>
-                                {item.product_id && (
-                                  <div className="text-xs text-gray-400 font-mono mt-1">
-                                    SKU: {item.product_id.slice(-8)}
-                                  </div>
-                                )}
+                                <div className="font-medium text-gray-900 text-sm">
+                                  {item.product_name || item.product?.name || `Product #${item.product_id?.slice(-6) || 'N/A'}`}
+                                </div>
                               </div>
                             </div>
                           </td>
-                          {/* <td className="px-6 py-4 text-sm text-gray-600">
-                            {item.product?.category || 'Uncategorized'}
-                          </td> */}
-                          <td className="px-6 py-4">
-                            <span className="inline-flex items-center justify-center w-8 h-8 bg-blue-100 text-blue-800 rounded-full text-sm font-semibold">
+                          <td className="px-4 lg:px-6 py-3">
+                            <span className="inline-flex items-center justify-center w-6 h-6 bg-blue-100 text-blue-800 rounded-full text-xs font-semibold">
                               {item.quantity || 0}
                             </span>
                           </td>
-                          <td className="px-6 py-4 text-sm text-gray-600">
+                          <td className="px-4 lg:px-6 py-3 text-xs lg:text-sm text-gray-600">
                             <div className="font-medium">₦{(item.unit_sell_price || 0).toFixed(2)}</div>
-                            <div className="text-xs text-gray-400">
-                              Cost: ₦{(item.unit_buy_price || 0).toFixed(2)}
-                            </div>
                           </td>
-                          <td className="px-6 py-4 text-sm font-semibold text-gray-900">
+                          <td className="px-4 lg:px-6 py-3 text-xs lg:text-sm font-semibold text-gray-900">
                             ₦{(item.total_sell_price || 0).toFixed(2)}
                           </td>
-                          <td className="px-6 py-4 text-sm">
+                          <td className="px-4 lg:px-6 py-3 text-xs lg:text-sm">
                             <div className={`font-bold text-center px-2 py-1 rounded ${
                               (item.item_profit || 0) >= 0 
                                 ? 'bg-green-100 text-green-800' 
                                 : 'bg-red-100 text-red-800'
                             }`}>
                               ₦{(item.item_profit || 0).toFixed(2)}
-                            </div>
-                            <div className="text-xs text-gray-500 text-center mt-1">
-                              {item.unit_buy_price ? 
-                                `${(((item.unit_sell_price - item.unit_buy_price) / item.unit_buy_price) * 100).toFixed(1)}% margin` 
-                                : 'N/A'
-                              }
                             </div>
                           </td>
                         </tr>
@@ -593,38 +621,38 @@ const Sales: React.FC = () => {
               )}
 
               {/* Totals Section */}
-              <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-200 p-6">
-                  <h5 className="font-semibold text-gray-800 mb-4">Financial Summary</h5>
-                  <div className="space-y-3">
+              <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
+                <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-200 p-4 lg:p-6">
+                  <h5 className="font-semibold text-gray-800 mb-3 lg:mb-4">Financial Summary</h5>
+                  <div className="space-y-2 lg:space-y-3">
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-600">Subtotal:</span>
-                      <span className="font-semibold">₦{(selectedSale.total_amount || 0).toFixed(2)}</span>
+                      <span className="text-gray-600 text-sm lg:text-base">Subtotal:</span>
+                      <span className="font-semibold text-sm lg:text-base">₦{(selectedSale.total_amount || 0).toFixed(2)}</span>
                     </div>
-                    <div className="flex justify-between items-center text-lg font-bold border-t pt-3">
+                    <div className="flex justify-between items-center text-base lg:text-lg font-bold border-t pt-2 lg:pt-3">
                       <span>Total Revenue:</span>
                       <span className="text-blue-600">₦{(selectedSale.total_amount || 0).toFixed(2)}</span>
                     </div>
                   </div>
                 </div>
 
-                <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200 p-6">
-                  <h5 className="font-semibold text-gray-800 mb-4">Profit Analysis</h5>
-                  <div className="space-y-3">
+                <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200 p-4 lg:p-6">
+                  <h5 className="font-semibold text-gray-800 mb-3 lg:mb-4">Profit Analysis</h5>
+                  <div className="space-y-2 lg:space-y-3">
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-600">Total Cost:</span>
-                      <span className="font-semibold">
+                      <span className="text-gray-600 text-sm lg:text-base">Total Cost:</span>
+                      <span className="font-semibold text-sm lg:text-base">
                         ₦{((selectedSale.total_amount || 0) - (selectedSale.total_profit || 0)).toFixed(2)}
                       </span>
                     </div>
-                    <div className="flex justify-between items-center text-lg font-bold border-t pt-3">
+                    <div className="flex justify-between items-center text-base lg:text-lg font-bold border-t pt-2 lg:pt-3">
                       <span>Net Profit:</span>
                       <span className={getProfitColor(selectedSale.total_profit || 0)}>
                         ₦{(selectedSale.total_profit || 0).toFixed(2)}
                       </span>
                     </div>
                     {selectedSale.total_amount && selectedSale.total_amount > 0 && (
-                      <div className="text-sm text-gray-600 text-center mt-2">
+                      <div className="text-xs lg:text-sm text-gray-600 text-center mt-2">
                         Profit Margin: {((selectedSale.total_profit / selectedSale.total_amount) * 100).toFixed(1)}%
                       </div>
                     )}
@@ -633,16 +661,16 @@ const Sales: React.FC = () => {
               </div>
 
               {/* Action Buttons */}
-              <div className="mt-8 flex space-x-4">
+              <div className="mt-6 flex flex-col sm:flex-row gap-3">
                 <button
                   onClick={() => setSelectedSale(null)}
-                  className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 rounded-lg font-bold hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg"
+                  className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 lg:py-4 rounded-lg font-bold hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg"
                 >
                   Close Receipt
                 </button>
                 <button
                   onClick={() => window.print()}
-                  className="px-6 bg-gray-600 text-white py-4 rounded-lg font-bold hover:bg-gray-700 transition-all shadow-lg"
+                  className="px-6 bg-gray-600 text-white py-3 lg:py-4 rounded-lg font-bold hover:bg-gray-700 transition-all shadow-lg"
                 >
                   🖨️ Print
                 </button>

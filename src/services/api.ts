@@ -29,7 +29,6 @@ class ApiService {
       
       if (!response.ok) {
         if (response.status === 401) {
-          // Don't clear auth for verify-token endpoint
           if (!endpoint.includes('/auth/verify-token')) {
             this.clearAuthData();
           }
@@ -50,10 +49,26 @@ class ApiService {
       throw error;
     }
   }
+
+  // Helper method to convert product data with proper number conversion
+  private convertProductData(productData: any): Product {
+    return {
+      ...productData,
+      buy_price: Number(productData.buy_price) || 0,
+      sell_price: Number(productData.sell_price) || 0,
+      stock: Number(productData.stock) || 0
+    };
+  }
+
+  // Helper method to convert array of products
+  private convertProductsArray(productsData: any[]): Product[] {
+    return productsData.map(product => this.convertProductData(product));
+  }
   
   // Barcode endpoints
   async getProductByBarcode(barcode: string): Promise<Product> {
-    return this.request<Product>(`/products/barcode/${encodeURIComponent(barcode)}`);
+    const product = await this.request<any>(`/products/barcode/${encodeURIComponent(barcode)}`);
+    return this.convertProductData(product);
   }
 
   async checkBarcodeExists(barcode: string): Promise<{ exists: boolean; product?: Product }> {
@@ -70,25 +85,29 @@ class ApiService {
 
   // Product endpoints
   async getProducts(): Promise<Product[]> {
-    return this.request<Product[]>('/products');
+    const products = await this.request<any[]>('/products');
+    return this.convertProductsArray(products);
   }
 
   async getProductById(id: string): Promise<Product> {
-    return this.request<Product>(`/products/${id}`);
+    const product = await this.request<any>(`/products/${id}`);
+    return this.convertProductData(product);
   }
 
   async createProduct(product: Omit<Product, 'id' | 'created_at' | 'updated_at'>): Promise<Product> {
-    return this.request<Product>('/products', {
+    const newProduct = await this.request<Product>('/products', {
       method: 'POST',
       body: JSON.stringify(product),
     });
+    return this.convertProductData(newProduct);
   }
 
   async updateProduct(id: string, product: Partial<Product>): Promise<Product> {
-    return this.request<Product>(`/products/${id}`, {
+    const updatedProduct = await this.request<Product>(`/products/${id}`, {
       method: 'PUT',
       body: JSON.stringify(product),
     });
+    return this.convertProductData(updatedProduct);
   }
 
   async deleteProduct(id: string): Promise<void> {
@@ -98,7 +117,8 @@ class ApiService {
   }
 
   async searchProducts(query: string): Promise<Product[]> {
-    return this.request<Product[]>(`/products/search?q=${encodeURIComponent(query)}`);
+    const products = await this.request<any[]>(`/products/search?q=${encodeURIComponent(query)}`);
+    return this.convertProductsArray(products);
   }
 
   // Sales endpoints
@@ -144,14 +164,15 @@ class ApiService {
   }
 
   async getLowStockProducts(threshold: number = 10): Promise<LowStockProduct[]> {
-    return this.request<LowStockProduct[]>(`/dashboard/low-stock?threshold=${threshold}`);
+    const products = await this.request<any[]>(`/dashboard/low-stock?threshold=${threshold}`);
+    return this.convertProductsArray(products);
   }
 
   async getTotalStockWorth(): Promise<{ total_stock_worth: number }> {
     return this.request<{ total_stock_worth: number }>('/dashboard/stock-worth');
   }
 
-  // Authentication
+  // Authentication (unchanged)
   async login(username: string, password: string): Promise<{ token: string; username: string }> {
     try {
       if (!username?.trim() || !password?.trim()) {
@@ -197,7 +218,7 @@ class ApiService {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken}` // ADD THIS LINE - THIS WAS MISSING!
+          'Authorization': `Bearer ${authToken}`
         },
         body: JSON.stringify({ token: authToken }),
       });
