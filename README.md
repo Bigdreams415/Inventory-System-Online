@@ -13,3 +13,4 @@
 │   └── package.json
 └── shared/                 # Shared types/config
     └── types.ts# Inventory-System-Online
+# Inventory-System-Online
