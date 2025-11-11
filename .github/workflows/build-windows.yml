@@ -23,41 +23,44 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 20
+          cache: 'npm'
 
-      # Install frontend dependencies
-      - name: Install frontend dependencies
-        run: npm install
+      - name: Install root (frontend) dependencies
+        run: npm ci   # switched to ci for faster/cleaner installs
 
-      # Build frontend
-      - name: Build frontend
-        run: npm run build
-
-      # Install server dependencies
       - name: Install server dependencies
         run: |
           cd server
-          npm install
+          npm ci
           cd ..
 
-      # Optional: Build server (if using TypeScript or build scripts)
-      - name: Build server
+      - name: Build Server (if needed)
         run: |
           cd server
-          if [ -f package.json ] && grep -q "\"build\":" package.json; then
-            npm run build
-          fi
+          npm run build || echo "No build script, skipping"
           cd ..
 
-      # Rebuild Electron native modules
-      - name: Rebuild native modules for Electron
+      - name: Prune server to production only (removes dev bloat → fixes copy skips & size)
+        run: |
+          cd server
+          npm prune --production
+          cd ..
+
+      - name: Rebuild native modules for server folder (fixes sqlite3, etc. for Electron v39)
+        run: |
+          cd server
+          npx electron-rebuild --force --parallel
+          cd ..
+
+      - name: Rebuild native modules for root (in case any root natives exist)
         run: npx electron-rebuild --force --parallel
 
-      # Build Electron app for Windows (portable)
-      - name: Build Electron app (unsigned)
-        run: |
-          npx electron-builder --win --x64 --publish=never
+      - name: Build React frontend
+        run: npm run build
 
-      # Upload artifact including server with dependencies
+      - name: Package Electron app for Windows (unsigned portable)
+        run: npx electron-builder --win --x64 --publish=never
+
       - name: Upload Windows Build Artifact
         uses: actions/upload-artifact@v4
         with:

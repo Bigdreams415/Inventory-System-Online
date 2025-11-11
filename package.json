@@ -78,12 +78,15 @@
         },
         {
           "from": "server/node_modules",
-          "to": "server/node_modules"
+          "to": "server/node_modules",
+          "filter": ["**/*"]
         }
       ],
     "asar": true,
     "asarUnpack": [
-      "server/dist/**/*"
+      "server/dist/**/*",
+      "server/node_modules/sqlite3/**/*",         
+      "server/node_modules/**/build/Release/*.node"
     ],
     "extraMetadata": {
       "main": "electron/main.js"
