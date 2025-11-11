@@ -16,6 +16,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activePage, setActivePage, onMobileIt
     { id: 'sales' as PageType, label: 'Sales History', icon: '💰' },
     { id: 'services' as PageType, label: 'Services', icon: '🛠️' },
     { id: 'admin' as PageType, label: 'Admin', icon: '🔒' },
+    { id: 'account' as PageType, label: 'Account', icon: '👤' },
     { id: 'settings' as PageType, label: 'Settings', icon: '⚙️' },
   ];
 

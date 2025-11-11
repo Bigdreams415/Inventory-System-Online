@@ -81,7 +81,7 @@ const DesktopHeader: React.FC = () => {
     try {
       const response = await fetch(`${CLOUD_SYNC_URL}/sync/status`, {
         headers: {
-          'x-api-key': '9a3c7e2f5b8d1a4c6e9f2b5d8a1c4e7f0b3d6a9c2e5f8b1d4a7c0e3f6b9d2a5c' // Your API key
+          'x-api-key': 'VDJajN7sSbPrxq36rhOfPxd1tU+5dZlrfVOdV9CHlgSJyaYC/bOe/lTjhWEM2zC9NpiRyYZjf84P1T96T97KA==' // Your API key
         }
       });
       if (response.ok) {
@@ -102,7 +102,7 @@ const DesktopHeader: React.FC = () => {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'x-api-key': '9a3c7e2f5b8d1a4c6e9f2b5d8a1c4e7f0b3d6a9c2e5f8b1d4a7c0e3f6b9d2a5c' // Your API key
+          'x-api-key': 'VDJajN7sSbPrxq36rhOfPxd1tU+5dZlrfVOdV9CHlgSJyaYC/bOe/lTjhWEM2zC9NpiRyYZjf84P1T96T97KA==' // Your API key
         },
       });
     

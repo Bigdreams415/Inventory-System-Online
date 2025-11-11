@@ -8,6 +8,7 @@ import Services from './pages/Services';
 import { PageType } from './types/navigation';
 import AdminPage from './pages/Admin';
 import Settings from './pages/Settings';
+import Account from './pages/Account';
 
 function App() {
   const [currentPage, setCurrentPage] = useState<PageType>('pos');
@@ -28,6 +29,8 @@ function App() {
         return <AdminPage />;
       case 'settings':
         return <Settings />;
+      case 'account':
+        return <Account />;
       default:
         return <PointOfSale />;
     }

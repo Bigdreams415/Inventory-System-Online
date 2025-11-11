@@ -185,7 +185,7 @@ class ApiService {
       });
 
       if (result.token) {
-        localStorage.setItem('auth_token', result.token);
+        localStorage.setItem('authToken', result.token);
         localStorage.setItem('username', result.username);
       }
 
@@ -205,8 +205,8 @@ class ApiService {
 
   async verifyToken(token?: string): Promise<{ valid: boolean; username?: string }> {
     try {
-      const authToken = token || localStorage.getItem('auth_token');
-      
+      const authToken = token || localStorage.getItem('authToken');
+
       console.log('🔐 verifyToken called, token from localStorage:', authToken ? `${authToken.substring(0, 20)}...` : 'No token');
       
       if (!authToken) {
@@ -245,7 +245,7 @@ class ApiService {
 
   async logout(): Promise<void> {
     try {
-      const token = localStorage.getItem('auth_token');
+      const token = localStorage.getItem('authToken');
       
       if (token) {
         await this.request('/auth/logout', {
@@ -260,7 +260,7 @@ class ApiService {
   }
 
   getAuthToken(): string | null {
-    return localStorage.getItem('auth_token');
+    return localStorage.getItem('authToken');
   }
 
   getUsername(): string | null {
@@ -272,7 +272,7 @@ class ApiService {
   }
 
   private clearAuthData(): void {
-    localStorage.removeItem('auth_token');
+    localStorage.removeItem('authToken');
     localStorage.removeItem('username');
   }
 }
