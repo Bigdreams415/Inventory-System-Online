@@ -8,7 +8,6 @@ import Services from './pages/Services';
 import { PageType } from './types/navigation';
 import AdminPage from './pages/Admin';
 import Settings from './pages/Settings';
-import UpdateChecker from './components/UpdateChecker'; // ← ADD THIS IMPORT
 
 function App() {
   const [currentPage, setCurrentPage] = useState<PageType>('pos');
@@ -35,12 +34,9 @@ function App() {
   };
 
   return (
-    <>
-      <UpdateChecker /> 
-      <Layout activePage={currentPage} setActivePage={setCurrentPage}>
-        {renderPage()}
-      </Layout>
-    </>
+    <Layout activePage={currentPage} setActivePage={setCurrentPage}>
+      {renderPage()}
+    </Layout>
   );
 }
 

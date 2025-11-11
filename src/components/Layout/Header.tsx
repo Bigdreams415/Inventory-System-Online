@@ -358,7 +358,7 @@ const Header: React.FC = () => {
       <div className="flex items-center justify-between px-6 py-4">
         <div className="flex items-center">
           <img
-            src={`file://${(window as any).electronResources.resourcesPath}/assets/solo.png`}
+            src={`/solo.png`}
             alt="Solomon Medicals Logo"
             className="h-16 w-auto object-contain"
             onError={(e) => {

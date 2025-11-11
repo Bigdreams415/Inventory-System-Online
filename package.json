@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "Solomon Medicals Point of Sale System",
   "private": true,
-  "main": "electron/main.js",
   "homepage": "./",
   "author": {
     "name": "Solomon Medicals",
@@ -20,13 +19,10 @@
     "@types/react-dom": "^19.2.2",
     "chart.js": "^4.5.1",
     "date-fns": "^4.1.0",
-    "electron-is-dev": "^3.0.1",
-    "electron-updater": "^6.6.2",
     "react": "^19.2.0",
     "react-chartjs-2": "^5.3.1",
     "react-dom": "^19.2.0",
     "react-scripts": "5.0.1",
-    "sqlite3": "^5.1.7",
     "typescript": "^4.9.5",
     "web-vitals": "^2.1.4"
   },
@@ -34,80 +30,7 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject",
-    "electron": "electron .",
-    "electron-dev": "concurrently \"npm start\" \"wait-on http://localhost:3000 && electron .\"",
-    "electron-pack": "electron-builder",
-    "publish": "electron-builder --publish=always",
-    "build-all": "npm run build && npm run electron-pack",
-    "dist": "npm run build && electron-builder --publish=never",
-    "build-electron": "npm run build && electron-builder --mac --win",
-    "build-mac": "npm run build && electron-builder --mac",
-    "build-windows": "npm run build && electron-builder --win",
-    "dev": "concurrently \"npm start\" \"cd server && npm run dev\"",
-    "start-production": "concurrently \"npm start\" \"cd server && npm run dev\""
-  },
-  "build": {
-    "appId": "com.solomonmedicals.pos",
-    "productName": "Solomon Medicals POS",
-    "directories": {
-      "output": "dist",
-      "buildResources": "assets"
-    },
-    "files": [
-      "build/**/*",
-      "electron/**/*",
-      "server/dist/**/*",
-      "node_modules/**/*",
-      "package.json",
-      "!node_modules/.cache/**/*",
-      "!*.log",
-      "!*.md",
-      "!.git/**/*",
-      "!.DS_Store",
-      "!Thumbs.db"
-    ],
-    "extraResources": [
-        {
-          "from": "public",
-          "to": "assets"
-        },
-        {
-          "from": "server/dist",
-          "to": "server"
-        },
-        {
-          "from": "server/node_modules",
-          "to": "server/node_modules",
-          "filter": ["**/*"]
-        }
-      ],
-    "asar": true,
-    "asarUnpack": [
-      "server/dist/**/*",
-      "server/node_modules/sqlite3/**/*",         
-      "server/node_modules/**/build/Release/*.node"
-    ],
-    "extraMetadata": {
-      "main": "electron/main.js"
-    },
-    "mac": {
-      "target": "zip",
-      "category": "public.app-category.business",
-      "entitlementsInherit": "assets/entitlements.mac.plist"
-    },
-    "win": {
-      "target": "portable"
-    },
-    "nsis": {
-      "oneClick": false,
-      "allowToChangeInstallationDirectory": true
-    },
-    "publish": {
-      "provider": "github",
-      "owner": "Bigdreams415",
-      "repo": "Inventory-System"
-    }
+    "eject": "react-scripts eject"
   },
   "eslintConfig": {
     "extends": [
@@ -129,14 +52,7 @@
   },
   "devDependencies": {
     "autoprefixer": "^10.4.21",
-    "concurrently": "^9.2.1",
-    "cross-env": "^10.1.0",
-    "electron": "^39.0.0",
-    "electron-builder": "^26.0.12",
-    "nodemon": "^3.1.10",
     "postcss": "^8.5.6",
-    "tailwindcss": "^3.4.18",
-    "ts-node": "^10.9.2",
-    "wait-on": "^9.0.1"
+    "tailwindcss": "^3.4.18"
   }
 }
