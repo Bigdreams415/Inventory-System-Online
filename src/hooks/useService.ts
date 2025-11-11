@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Service, ServiceSale, ServiceStats, ServiceSalesStats } from '../types';
 
-const API_BASE_URL = 'http://localhost:3001/api';
+const API_BASE_URL = 'https://inventory-system-server-wx3t.onrender.com/api';
 
 // Helper function to get auth headers (same as in api.ts)
 const getAuthHeaders = (): HeadersInit => {
