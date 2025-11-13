@@ -11,8 +11,6 @@ import {
   Divider,
   IconButton,
   InputAdornment,
-  useMediaQuery,
-  useTheme
 } from '@mui/material';
 import {
   Security,
@@ -29,7 +27,6 @@ interface AccessCodeProps {
 }
 
 const AccessCode: React.FC<AccessCodeProps> = ({ isMobile }) => {
-  const theme = useTheme();
 
   const [currentCode, setCurrentCode] = useState('');
   const [newCode, setNewCode] = useState('');
