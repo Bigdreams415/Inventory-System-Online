@@ -1,5 +1,6 @@
 // pages/Account.tsx
 import React, { useState, useEffect } from 'react';
+import AccessCode from '../components/AccessCode';
 import { 
   Box, 
   Container, 
@@ -31,7 +32,8 @@ import {
   VisibilityOff,
   Close,
   Warning,
-  CheckCircle
+  CheckCircle,
+  Security
 } from '@mui/icons-material';
 
 interface TabPanelProps {
@@ -381,9 +383,25 @@ const Account: React.FC = () => {
 
   if (user) {
     return (
-      <Container maxWidth="sm" sx={{ mt: { xs: 2, sm: 4 }, p: { xs: 1, sm: 2 } }}>
-        <Card>
-          <CardContent>
+      <Container maxWidth="md" sx={{ mt: { xs: 2, sm: 4 }, p: { xs: 1, sm: 2 } }}>
+        <Paper elevation={3} sx={{ maxWidth: '100%', overflow: 'hidden' }}>
+          {/* Tabs Header */}
+          <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+            <Tabs 
+              value={tabValue} 
+              onChange={(_, newValue) => setTabValue(newValue)}
+              variant={isMobile ? "scrollable" : "fullWidth"}
+              scrollButtons={isMobile ? "auto" : false}
+              allowScrollButtonsMobile
+            >
+              <Tab icon={<Person />} label="Profile" />
+              <Tab icon={<VpnKey />} label="Change Password" />
+              <Tab icon={<Security />} label="Access Code" />
+            </Tabs>
+          </Box>
+
+          {/* Profile Tab */}
+          <TabPanel value={tabValue} index={0}>
             <Box textAlign="center" mb={3}>
               <Person sx={{ fontSize: { xs: 48, sm: 64 }, color: 'primary.main', mb: 2 }} />
               <Typography variant={isMobile ? "h5" : "h4"} gutterBottom>
@@ -396,6 +414,27 @@ const Account: React.FC = () => {
 
             <Divider sx={{ my: 3 }} />
 
+            <Typography variant="h6" gutterBottom>
+              Account Information
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Username: {user.username}<br/>
+              User ID: {user.id}<br/>
+              Role: Pharmacy Owner
+            </Typography>
+
+            <Button
+              variant="outlined"
+              fullWidth
+              sx={{ mt: 3 }}
+              onClick={handleLogout}
+            >
+              Logout
+            </Button>
+          </TabPanel>
+
+          {/* Change Password Tab */}
+          <TabPanel value={tabValue} index={1}>
             <Typography variant="h6" gutterBottom>
               Change Password
             </Typography>
@@ -491,8 +530,13 @@ const Account: React.FC = () => {
             >
               Logout
             </Button>
-          </CardContent>
-        </Card>
+          </TabPanel>
+
+          {/* Access Code Tab */}
+          <TabPanel value={tabValue} index={2}>
+            <AccessCode isMobile={isMobile} />
+          </TabPanel>
+        </Paper>
 
         {/* Enhanced Snackbar */}
         <Snackbar
@@ -534,6 +578,7 @@ const Account: React.FC = () => {
             <Tab icon={<Key />} label="Login" />
             <Tab icon={<Person />} label="Create Account" />
             <Tab icon={<VpnKey />} label="Reset Password" />
+            <Tab icon={<Security />} label="Access Code" />
           </Tabs>
         </Box>
 

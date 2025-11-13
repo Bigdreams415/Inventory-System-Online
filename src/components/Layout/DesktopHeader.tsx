@@ -27,8 +27,8 @@ interface SyncState {
   error: string | null;
 }
 
-const API_BASE_URL = 'https://inventory-system-server-wx3t.onrender.com/api'; // ← CORRECT! Local server
-const CLOUD_SYNC_URL = 'https://inventory-system-server-wx3t.onrender.com/api'; // Cloud sync API
+const API_BASE_URL = 'https://inventory-system-server-wx3t.onrender.com/api';  
+const CLOUD_SYNC_URL = 'https://inventory-system-server-wx3t.onrender.com/api';  
 
 const DesktopHeader: React.FC = () => {
   const [showPharmacyModal, setShowPharmacyModal] = useState(false);

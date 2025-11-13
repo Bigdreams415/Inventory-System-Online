@@ -64,6 +64,29 @@ class ApiService {
   private convertProductsArray(productsData: any[]): Product[] {
     return productsData.map(product => this.convertProductData(product));
   }
+
+  // Helper method to convert sale data with proper number conversion
+  private convertSaleData(saleData: any): Sale {
+    return {
+      ...saleData,
+      total_amount: Number(saleData.total_amount) || 0,
+      total_profit: Number(saleData.total_profit) || 0,
+      // Convert nested items if they exist
+      items: saleData.items?.map((item: any) => ({
+        ...item,
+        unit_sell_price: Number(item.unit_sell_price) || 0,
+        unit_buy_price: Number(item.unit_buy_price) || 0,
+        total_sell_price: Number(item.total_sell_price) || 0,
+        item_profit: Number(item.item_profit) || 0,
+        quantity: Number(item.quantity) || 0
+      })) || []
+    };
+  }
+
+  // Helper method to convert array of sales
+  private convertSalesArray(salesData: any[]): Sale[] {
+    return salesData.map(sale => this.convertSaleData(sale));
+  }
   
   // Barcode endpoints
   async getProductByBarcode(barcode: string): Promise<Product> {
@@ -95,7 +118,7 @@ class ApiService {
   }
 
   async createProduct(product: Omit<Product, 'id' | 'created_at' | 'updated_at'>): Promise<Product> {
-    const newProduct = await this.request<Product>('/products', {
+    const newProduct = await this.request<any>('/products', {
       method: 'POST',
       body: JSON.stringify(product),
     });
@@ -103,7 +126,7 @@ class ApiService {
   }
 
   async updateProduct(id: string, product: Partial<Product>): Promise<Product> {
-    const updatedProduct = await this.request<Product>(`/products/${id}`, {
+    const updatedProduct = await this.request<any>(`/products/${id}`, {
       method: 'PUT',
       body: JSON.stringify(product),
     });
@@ -121,24 +144,58 @@ class ApiService {
     return this.convertProductsArray(products);
   }
 
-  // Sales endpoints
+  // Sales endpoints - FIXED WITH PROPER ERROR HANDLING
   async createSale(saleData: CreateSaleRequest): Promise<Sale> {
-    return this.request<Sale>('/sales', {
+    const sale = await this.request<any>('/sales', {
       method: 'POST',
       body: JSON.stringify(saleData),
     });
+    return this.convertSaleData(sale);
   }
 
   async getSales(page: number = 1, limit: number = 50): Promise<{ data: Sale[]; pagination: any }> {
-    return this.request<{ data: Sale[]; pagination: any }>(`/sales?page=${page}&limit=${limit}`);
+    const response = await this.request<any>(`/sales?page=${page}&limit=${limit}`);
+    
+    // Handle different response structures
+    let salesData: any[] = [];
+    
+    if (Array.isArray(response)) {
+      // If response is directly an array
+      salesData = response;
+    } else if (response && typeof response === 'object') {
+      // If response has data property
+      salesData = response.data || response.sales || [];
+    }
+    
+    return {
+      data: this.convertSalesArray(salesData),
+      pagination: response.pagination || {}
+    };
   }
 
   async getSaleById(id: string): Promise<Sale> {
-    return this.request<Sale>(`/sales/${id}`);
+    const sale = await this.request<any>(`/sales/${id}`);
+    return this.convertSaleData(sale);
   }
 
   async getTodaySales(): Promise<{ sales: Sale[]; summary: TodaySalesSummary }> {
-    return this.request<{ sales: Sale[]; summary: TodaySalesSummary }>('/sales/today');
+    const response = await this.request<any>('/sales/today');
+    
+    // Handle different response structures
+    let salesData: any[] = [];
+    let summaryData: TodaySalesSummary = response.summary || {};
+    
+    if (Array.isArray(response)) {
+      salesData = response;
+    } else if (response && typeof response === 'object') {
+      salesData = response.sales || response.data || [];
+      summaryData = response.summary || {};
+    }
+    
+    return {
+      sales: this.convertSalesArray(salesData),
+      summary: summaryData
+    };
   }
 
   // Health check
@@ -160,7 +217,11 @@ class ApiService {
   }
 
   async getRecentSales(limit: number = 5): Promise<RecentSale[]> {
-    return this.request<RecentSale[]>(`/dashboard/recent-sales?limit=${limit}`);
+    const sales = await this.request<any[]>(`/dashboard/recent-sales?limit=${limit}`);
+    return sales.map(sale => ({
+      ...sale,
+      total_amount: Number(sale.total_amount) || 0
+    }));
   }
 
   async getLowStockProducts(threshold: number = 10): Promise<LowStockProduct[]> {
@@ -172,7 +233,7 @@ class ApiService {
     return this.request<{ total_stock_worth: number }>('/dashboard/stock-worth');
   }
 
-  // Authentication (unchanged)
+  // Authentication
   async login(username: string, password: string): Promise<{ token: string; username: string }> {
     try {
       if (!username?.trim() || !password?.trim()) {

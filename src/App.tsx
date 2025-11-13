@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Gatekeeper from './components/Gatekeeper';
 import Layout from './components/Layout/Layout';
 import Dashboard from './pages/Dashboard';
 import PointOfSale from './pages/PointOfSale';
@@ -37,9 +38,11 @@ function App() {
   };
 
   return (
-    <Layout activePage={currentPage} setActivePage={setCurrentPage}>
-      {renderPage()}
-    </Layout>
+    <Gatekeeper>
+      <Layout activePage={currentPage} setActivePage={setCurrentPage}>
+        {renderPage()}
+      </Layout>
+    </Gatekeeper>
   );
 }
 
