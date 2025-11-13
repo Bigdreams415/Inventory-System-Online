@@ -40,16 +40,14 @@ const Sales: React.FC = () => {
         
         try {
           const saleDate = new Date(sale.created_at);
-          const filterDate = new Date(dateFilter + 'T00:00:00');
-          
-          return saleDate.toISOString().split('T')[0] === filterDate.toISOString().split('T')[0];
+          const saleLocalDate = saleDate.toLocaleDateString('en-CA'); // "2025-11-12" format
+          return saleLocalDate === dateFilter;
         } catch (error) {
           console.error('Date parsing error:', error);
           return false;
         }
       })
     : sales;
-
   // Enhanced calendar functions
   const getCalendarDays = () => {
     const today = new Date();
@@ -76,16 +74,16 @@ const Sales: React.FC = () => {
   };
 
   const getSalesForDate = (date: Date) => {
-    const dateStr = date.toISOString().split('T')[0];
+    const dateStr = date.toLocaleDateString('en-CA'); // Use local date string
     return sales.filter(sale => {
       if (!sale.created_at) return false;
-      const saleDate = new Date(sale.created_at).toISOString().split('T')[0];
+      const saleDate = new Date(sale.created_at).toLocaleDateString('en-CA');
       return saleDate === dateStr;
     });
   };
 
   const handleDateSelect = (date: Date) => {
-    setDateFilter(date.toISOString().split('T')[0]);
+    setDateFilter(date.toLocaleDateString('en-CA')); // Use local date format
     setShowCalendar(false);
   };
 
