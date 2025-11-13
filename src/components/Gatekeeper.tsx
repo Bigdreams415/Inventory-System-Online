@@ -53,7 +53,7 @@ const Gatekeeper: React.FC<GatekeeperProps> = ({ children }) => {
     setError('');
 
     try {
-      const response = await fetch('http://localhost:3001/api/gatekeeper/verify', {
+      const response = await fetch('https://inventory-system-server-wx3t.onrender.com/api/gatekeeper/verify', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
