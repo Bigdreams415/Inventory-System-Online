@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Product, CartItem, Sale } from '../types';
 import { useProducts } from '../hooks/useProducts';
-import { useSales } from '../hooks/useSales';
+import { useSales } from '../hooks/useLedger';
 import { useBarcode } from '../hooks/useBarcode';
 
 const PointOfSale: React.FC = () => {

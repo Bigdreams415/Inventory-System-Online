@@ -3,7 +3,7 @@ import { format } from 'date-fns';
 import { Sale } from '../types';
 import { useSales } from '../hooks/useSales';
 
-const Sales: React.FC = () => {
+const SalesHistory: React.FC = () => {
   const { getSales } = useSales();
   const [sales, setSales] = useState<Sale[]>([]);
   const [selectedSale, setSelectedSale] = useState<Sale | null>(null);
@@ -48,6 +48,7 @@ const Sales: React.FC = () => {
         }
       })
     : sales;
+
   // Enhanced calendar functions
   const getCalendarDays = () => {
     const today = new Date();
@@ -100,10 +101,6 @@ const Sales: React.FC = () => {
     }
   };
 
-  const getProfitColor = (profit: number) => {
-    return profit >= 0 ? 'text-green-600' : 'text-red-600';
-  };
-
   const getSaleIntensity = (date: Date) => {
     const salesCount = getSalesForDate(date).length;
     if (salesCount === 0) return 'bg-white hover:bg-gray-50';
@@ -120,8 +117,8 @@ const Sales: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-gray-800">Sales History</h2>
-          <p className="text-gray-600 mt-1">View and manage all sales transactions</p>
+          <h2 className="text-2xl font-bold text-gray-800">My Sales History</h2>
+          <p className="text-gray-600 mt-1">View your sales transactions</p>
         </div>
         
         {/* Enhanced Filter Section */}
@@ -251,8 +248,8 @@ const Sales: React.FC = () => {
         </div>
       </div>
 
-      {/* Sales Summary Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
+      {/* Sales Summary Cards - Simplified for Cashier */}
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-4">
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 lg:p-6 hover:shadow-md transition-shadow">
           <div className="flex items-center">
             <div className="flex-shrink-0">
@@ -267,7 +264,7 @@ const Sales: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 lg:p-6 hover:shadow-md transition-shadow">
+        {/* <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 lg:p-6 hover:shadow-md transition-shadow">
           <div className="flex items-center">
             <div className="flex-shrink-0">
               <div className="w-8 h-8 lg:w-12 lg:h-12 bg-green-500 rounded-lg flex items-center justify-center">
@@ -275,29 +272,13 @@ const Sales: React.FC = () => {
               </div>
             </div>
             <div className="ml-3 lg:ml-4">
-              <p className="text-xs lg:text-sm font-medium text-gray-600">Revenue</p>
+              <p className="text-xs lg:text-sm font-medium text-gray-600">Total Amount</p>
               <p className="text-lg lg:text-2xl font-semibold text-gray-900">
                 ₦{filteredSales.reduce((sum, sale) => sum + (sale.total_amount || 0), 0).toFixed(2)}
               </p>
             </div>
           </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 lg:p-6 hover:shadow-md transition-shadow">
-          <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <div className="w-8 h-8 lg:w-12 lg:h-12 bg-purple-500 rounded-lg flex items-center justify-center">
-                <span className="text-white text-sm lg:text-xl">💸</span>
-              </div>
-            </div>
-            <div className="ml-3 lg:ml-4">
-              <p className="text-xs lg:text-sm font-medium text-gray-600">Profit</p>
-              <p className="text-lg lg:text-2xl font-semibold text-green-600">
-                ₦{filteredSales.reduce((sum, sale) => sum + (sale.total_profit || 0), 0).toFixed(2)}
-              </p>
-            </div>
-          </div>
-        </div>
+        </div> */}
 
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 lg:p-6 hover:shadow-md transition-shadow">
           <div className="flex items-center">
@@ -318,7 +299,7 @@ const Sales: React.FC = () => {
         </div>
       </div>
 
-      {/* Desktop Table View */}
+      {/* Desktop Table View - Simplified for Cashier */}
       <div className="hidden lg:block bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
         {filteredSales.length === 0 ? (
           <div className="text-center py-12">
@@ -348,13 +329,10 @@ const Sales: React.FC = () => {
                     Items
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Payment
+                    Payment Method
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Revenue
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Profit
+                    Total Amount
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Actions
@@ -403,11 +381,6 @@ const Sales: React.FC = () => {
                         ₦{(sale.total_amount || 0).toFixed(2)}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className={`text-sm font-semibold ${getProfitColor(sale.total_profit || 0)}`}>
-                        ₦{(sale.total_profit || 0).toFixed(2)}
-                      </div>
-                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <button
                         onClick={() => setSelectedSale(sale)}
@@ -424,7 +397,7 @@ const Sales: React.FC = () => {
         )}
       </div>
 
-      {/* Mobile Card View - Simplified without toggle */}
+      {/* Mobile Card View - Simplified for Cashier */}
       <div className="lg:hidden">
         {filteredSales.length === 0 ? (
           <div className="text-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
@@ -463,15 +436,9 @@ const Sales: React.FC = () => {
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Revenue:</span>
+                    <span className="text-gray-600">Total Amount:</span>
                     <span className="font-medium text-gray-900">
                       ₦{(sale.total_amount || 0).toFixed(2)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Profit:</span>
-                    <span className={`font-medium ${getProfitColor(sale.total_profit || 0)}`}>
-                      ₦{(sale.total_profit || 0).toFixed(2)}
                     </span>
                   </div>
                 </div>
@@ -488,10 +455,10 @@ const Sales: React.FC = () => {
         )}
       </div>
 
-      {/* Enhanced Sale Details Modal */}
+      {/* Enhanced Sale Details Modal - Simplified for Cashier */}
       {selectedSale && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-6xl max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
             {/* Header */}
             <div className="p-4 lg:p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
               <div className="flex justify-between items-start">
@@ -513,23 +480,13 @@ const Sales: React.FC = () => {
             </div>
 
             <div className="p-4 lg:p-6">
-              {/* Sale Summary Cards */}
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4 mb-6">
+              {/* Sale Summary Cards - Simplified */}
+              <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-4 mb-6">
                 <div className="bg-white border border-gray-200 rounded-lg p-3 lg:p-4 text-center">
                   <p className="text-xs lg:text-sm text-gray-600">Payment Method</p>
                   <p className="font-semibold text-sm lg:text-lg capitalize text-gray-900 mt-1">
                     {selectedSale.payment_method || 'N/A'}
                   </p>
-                </div>
-                <div className="bg-white border border-gray-200 rounded-lg p-3 lg:p-4 text-center">
-                  <p className="text-xs lg:text-sm text-gray-600">Status</p>
-                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full mt-1 ${
-                    selectedSale.status === 'completed' 
-                      ? 'bg-green-100 text-green-800 border border-green-200' 
-                      : 'bg-yellow-100 text-yellow-800 border border-yellow-200'
-                  }`}>
-                    {selectedSale.status || 'unknown'}
-                  </span>
                 </div>
                 <div className="bg-white border border-gray-200 rounded-lg p-3 lg:p-4 text-center">
                   <p className="text-xs lg:text-sm text-gray-600">Total Items</p>
@@ -545,7 +502,7 @@ const Sales: React.FC = () => {
                 </div>
               </div>
 
-              {/* Items Table */}
+              {/* Items Table - Simplified */}
               <h4 className="font-bold text-gray-900 mb-4 text-lg border-b pb-2">Items Sold</h4>
               {!selectedSale.items || selectedSale.items.length === 0 ? (
                 <div className="text-center py-8 bg-gray-50 rounded-lg">
@@ -568,9 +525,6 @@ const Sales: React.FC = () => {
                         </th>
                         <th className="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Total
-                        </th>
-                        <th className="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Profit
                         </th>
                       </tr>
                     </thead>
@@ -602,15 +556,6 @@ const Sales: React.FC = () => {
                           <td className="px-4 lg:px-6 py-3 text-xs lg:text-sm font-semibold text-gray-900">
                             ₦{(item.total_sell_price || 0).toFixed(2)}
                           </td>
-                          <td className="px-4 lg:px-6 py-3 text-xs lg:text-sm">
-                            <div className={`font-bold text-center px-2 py-1 rounded ${
-                              (item.item_profit || 0) >= 0 
-                                ? 'bg-green-100 text-green-800' 
-                                : 'bg-red-100 text-red-800'
-                            }`}>
-                              ₦{(item.item_profit || 0).toFixed(2)}
-                            </div>
-                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -618,42 +563,13 @@ const Sales: React.FC = () => {
                 </div>
               )}
 
-              {/* Totals Section */}
-              <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
-                <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-200 p-4 lg:p-6">
-                  <h5 className="font-semibold text-gray-800 mb-3 lg:mb-4">Financial Summary</h5>
-                  <div className="space-y-2 lg:space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-600 text-sm lg:text-base">Subtotal:</span>
-                      <span className="font-semibold text-sm lg:text-base">₦{(selectedSale.total_amount || 0).toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between items-center text-base lg:text-lg font-bold border-t pt-2 lg:pt-3">
-                      <span>Total Revenue:</span>
-                      <span className="text-blue-600">₦{(selectedSale.total_amount || 0).toFixed(2)}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200 p-4 lg:p-6">
-                  <h5 className="font-semibold text-gray-800 mb-3 lg:mb-4">Profit Analysis</h5>
-                  <div className="space-y-2 lg:space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-600 text-sm lg:text-base">Total Cost:</span>
-                      <span className="font-semibold text-sm lg:text-base">
-                        ₦{((selectedSale.total_amount || 0) - (selectedSale.total_profit || 0)).toFixed(2)}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center text-base lg:text-lg font-bold border-t pt-2 lg:pt-3">
-                      <span>Net Profit:</span>
-                      <span className={getProfitColor(selectedSale.total_profit || 0)}>
-                        ₦{(selectedSale.total_profit || 0).toFixed(2)}
-                      </span>
-                    </div>
-                    {selectedSale.total_amount && selectedSale.total_amount > 0 && (
-                      <div className="text-xs lg:text-sm text-gray-600 text-center mt-2">
-                        Profit Margin: {((selectedSale.total_profit / selectedSale.total_amount) * 100).toFixed(1)}%
-                      </div>
-                    )}
+              {/* Totals Section - Simplified */}
+              <div className="mt-6 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-200 p-4 lg:p-6">
+                <h5 className="font-semibold text-gray-800 mb-3 lg:mb-4">Sale Summary</h5>
+                <div className="space-y-2 lg:space-y-3">
+                  <div className="flex justify-between items-center text-base lg:text-lg font-bold">
+                    <span>Total Amount:</span>
+                    <span className="text-blue-600">₦{(selectedSale.total_amount || 0).toFixed(2)}</span>
                   </div>
                 </div>
               </div>
@@ -681,4 +597,4 @@ const Sales: React.FC = () => {
   );
 };
 
-export default Sales;
+export default SalesHistory;

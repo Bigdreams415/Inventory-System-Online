@@ -4,12 +4,13 @@ import Layout from './components/Layout/Layout';
 import Dashboard from './pages/Dashboard';
 import PointOfSale from './pages/PointOfSale';
 import Inventory from './pages/Inventory';
-import Sales from './pages/Sales';
+import Sales from './pages/Ledger';
 import Services from './pages/Services';
 import { PageType } from './types/navigation';
 import AdminPage from './pages/Admin';
 import Settings from './pages/Settings';
 import Account from './pages/Account';
+import SalesHistory from './pages/SalesHistory';
 
 function App() {
   const [currentPage, setCurrentPage] = useState<PageType>('pos');
@@ -22,7 +23,9 @@ function App() {
         return <PointOfSale />;
       case 'inventory':
         return <Inventory />;
-      case 'sales':
+        case 'SalesHistory':
+        return <SalesHistory />;
+      case 'Ledger':
         return <Sales />;
       case 'services':
         return <Services />;

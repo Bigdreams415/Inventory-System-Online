@@ -233,6 +233,44 @@ class ApiService {
     return this.request<{ total_stock_worth: number }>('/dashboard/stock-worth');
   }
 
+  //cashier sales endpoints
+  async getCashierSales(page: number = 1, limit: number = 50): Promise<{ data: Sale[]; pagination: any }> {
+    const response = await this.request<any>(`/sales-history?page=${page}&limit=${limit}`);
+    
+    let salesData: any[] = [];
+    
+    if (Array.isArray(response)) {
+      salesData = response;
+    } else if (response && typeof response === 'object') {
+      salesData = response.data || response.sales || [];
+    }
+    
+    return {
+      data: this.convertSalesArray(salesData),
+      pagination: response.pagination || {}
+    };
+  }
+
+  async getCashierTodaySales(): Promise<{ sales: Sale[]; summary: TodaySalesSummary }> {
+    const response = await this.request<any>('/sales-history/today');
+    
+    let salesData: any[] = [];
+    let summaryData: TodaySalesSummary = response.summary || {};
+    
+    if (Array.isArray(response)) {
+      salesData = response;
+    } else if (response && typeof response === 'object') {
+      salesData = response.sales || response.data || [];
+      summaryData = response.summary || {};
+    }
+    
+    return {
+      sales: this.convertSalesArray(salesData),
+      summary: summaryData
+    };
+  }
+
+
   // Authentication
   async login(username: string, password: string): Promise<{ token: string; username: string }> {
     try {
