@@ -127,7 +127,7 @@ const Account: React.FC = () => {
     const token = localStorage.getItem('authToken');
     if (token) {
       try {
-        const response = await fetch('https://inventory-system-server-wx3t.onrender.com/api/auth/verify-token', {
+        const response = await fetch('https://inventory-system-server-henna.vercel.app/api/auth/verify-token', {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -180,7 +180,7 @@ const Account: React.FC = () => {
     }
 
     try {
-      const response = await fetch('https://inventory-system-server-wx3t.onrender.com/api/auth/login', {
+      const response = await fetch('https://inventory-system-server-henna.vercel.app/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -218,7 +218,7 @@ const Account: React.FC = () => {
     }
 
     try {
-      const response = await fetch('https://inventory-system-server-wx3t.onrender.com/api/auth/create-account', {
+      const response = await fetch('https://inventory-system-server-henna.vercel.app/api/auth/create-account', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -264,7 +264,7 @@ const Account: React.FC = () => {
     if (!username) return;
 
     try {
-      const response = await fetch(`https://inventory-system-server-wx3t.onrender.com/api/auth/security-questions/${username}`);
+      const response = await fetch(`https://inventory-system-server-henna.vercel.app/api/auth/security-questions/${username}`);
       const data = await response.json();
 
       if (data.success) {
@@ -287,7 +287,7 @@ const Account: React.FC = () => {
     }
 
     try {
-      const response = await fetch('https://inventory-system-server-wx3t.onrender.com/api/auth/reset-password', {
+      const response = await fetch('https://inventory-system-server-henna.vercel.app/api/auth/reset-password', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -343,7 +343,7 @@ const Account: React.FC = () => {
     }
 
     try {
-      const response = await fetch('https://inventory-system-server-wx3t.onrender.com/api/auth/change-password', {
+      const response = await fetch('https://inventory-system-server-henna.vercel.app/api/auth/change-password', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -44,7 +44,7 @@ const AccessCode: React.FC<AccessCodeProps> = ({ isMobile }) => {
   const loadCurrentCode = async () => {
     try {
       const token = localStorage.getItem('authToken');
-      const response = await fetch('https://inventory-system-server-wx3t.onrender.com/api/gatekeeper/code', {
+      const response = await fetch('https://inventory-system-server-henna.vercel.app/api/gatekeeper/code', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -86,7 +86,7 @@ const AccessCode: React.FC<AccessCodeProps> = ({ isMobile }) => {
 
     try {
       const token = localStorage.getItem('authToken');
-      const response = await fetch('https://inventory-system-server-wx3t.onrender.com/api/gatekeeper/code', {
+      const response = await fetch('https://inventory-system-server-henna.vercel.app/api/gatekeeper/code', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
