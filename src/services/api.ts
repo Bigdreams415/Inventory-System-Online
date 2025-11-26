@@ -1,7 +1,7 @@
 import { Product, Sale, CreateSaleRequest, TodaySalesSummary } from '../types';
 import { DashboardSummary, SalesTrend, CategoryDistribution, RecentSale, LowStockProduct } from '../types';
 
-const API_BASE_URL = 'https://inventory-system-server-henna.vercel.app/api';
+const API_BASE_URL = 'https://inventory-system-server-jh79.onrender.com/api';
 
 class ApiService {
   private getAuthHeaders(): HeadersInit {

@@ -27,8 +27,8 @@ interface SyncState {
   error: string | null;
 }
 
-const API_BASE_URL = 'https://inventory-system-server-henna.vercel.app/api';  
-const CLOUD_SYNC_URL = 'https://inventory-system-server-henna.vercel.app/api';  
+const API_BASE_URL = 'https://inventory-system-server-jh79.onrender.com/api';  
+const CLOUD_SYNC_URL = 'https://inventory-system-server-jh79.onrender.com/api';  
 
 const DesktopHeader: React.FC = () => {
   const [showPharmacyModal, setShowPharmacyModal] = useState(false);

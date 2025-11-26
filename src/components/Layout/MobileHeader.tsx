@@ -21,7 +21,7 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({ onMenuToggle }) => {
 
   const fetchCurrentPharmacy = async () => {
     try {
-      const response = await fetch('https://inventory-system-server-henna.vercel.app/api/pharmacy/current');
+      const response = await fetch('https://inventory-system-server-jh79.onrender.com/api/pharmacy/current');
       if (response.ok) {
         const result = await response.json();
         if (result.success) {

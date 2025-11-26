@@ -53,7 +53,7 @@ const Gatekeeper: React.FC<GatekeeperProps> = ({ children }) => {
     setError('');
 
     try {
-      const response = await fetch('https://inventory-system-server-henna.vercel.app/api/gatekeeper/verify', {
+      const response = await fetch('https://inventory-system-server-jh79.onrender.com/api/gatekeeper/verify', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
