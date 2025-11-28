@@ -196,11 +196,11 @@ class ApiService {
       summary: summaryData
     };
   }
-  async getSalesByDateRange(startDate: string, endDate: string): Promise<Sale[]> {
-    const sales = await this.request<any[]>(`/sales/date-range?startDate=${startDate}&endDate=${endDate}`);
+
+  async getSalesByDate(date: string): Promise<Sale[]> {
+    const sales = await this.request<any[]>(`/sales/by-date?date=${date}`);
     return this.convertSalesArray(sales);
   }
-
   // Health check
   async healthCheck(): Promise<{ message: string; timestamp: string }> {
     return this.request('/health');

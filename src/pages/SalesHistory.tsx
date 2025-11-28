@@ -61,7 +61,7 @@ const SalesHistory: React.FC = () => {
 
     fetchSalesForDate();
   }
-}, [dateFilter, getSalesByDate, sales]);
+}, [dateFilter, sales]);
 
   // Enhanced calendar functions
   const getCalendarDays = () => {

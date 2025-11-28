@@ -82,18 +82,27 @@ export const useSales = () => {
   };
 
   const getSalesByDate = async (date: string): Promise<Sale[]> => {
-    setLoading(true);
-    setError(null);
     try {
-      // Use the same date for start and end to get sales for a specific day
-      const salesData = await apiService.getSalesByDateRange(date, date);
-      return salesData;
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch sales by date';
-      setError(errorMessage);
-      throw err;
-    } finally {
-      setLoading(false);
+      console.log('🔄 Using NEW endpoint for date:', date);
+      
+      // Use the new simple endpoint
+      const sales = await apiService.getSalesByDate(date);
+      console.log('✅ NEW endpoint found sales:', sales.length);
+      return sales;
+      
+    } catch (error) {
+      console.error('❌ NEW endpoint failed, using client-side filtering:', error);
+      
+      // Fallback to client-side filtering
+      const allSales = await getAllSales();
+      const filtered = allSales.filter(sale => {
+        if (!sale.created_at) return false;
+        const saleDate = new Date(sale.created_at).toISOString().split('T')[0];
+        return saleDate === date;
+      });
+      
+      console.log('🔄 Client-side filtering found:', filtered.length, 'sales');
+      return filtered;
     }
   };
 
