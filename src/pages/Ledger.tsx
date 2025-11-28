@@ -3,8 +3,19 @@ import { format } from 'date-fns';
 import { Sale } from '../types';
 import { useSales } from '../hooks/useLedger';
 
+const formatDateSafe = (dateString: string | null | undefined): string => {
+  if (!dateString) return '';
+  try {
+    const date = new Date(dateString);
+    return isNaN(date.getTime()) ? '' : format(date, 'MMM dd, yyyy');
+  } catch {
+    return '';
+  }
+};
+
+
 const Sales: React.FC = () => {
-  const { getSales, getAllSales, getSalesByDate } = useSales();
+  const { getAllSales, getSalesByDate } = useSales();
 
   const [sales, setSales] = useState<Sale[]>([]);
   const [selectedSale, setSelectedSale] = useState<Sale | null>(null);
@@ -39,29 +50,32 @@ const Sales: React.FC = () => {
     loadSales();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
   useEffect(() => {
     if (!dateFilter) {
       setFilteredSales(sales);
       setIsFiltering(false);
-    } else {
-      const fetchSalesForDate = async () => {
-        setIsFiltering(true);
-        try {
-          console.log('Fetching sales for date:', dateFilter);
-          const dateSales = await getSalesByDate(dateFilter);
-          setFilteredSales(dateSales);
-          console.log('Found sales for date:', dateSales.length);
-        } catch (error) {
-          console.error('Failed to fetch sales for date:', error);
-          setFilteredSales([]);
-        } finally {
-          setIsFiltering(false);
-        }
-      };
-
-      fetchSalesForDate();
+      return;
     }
-  }, [dateFilter, getSalesByDate, sales]);
+
+    const fetchSalesForDate = async () => {
+      setIsFiltering(true);
+      try {
+        console.log('🔄 Fetching sales for date:', dateFilter);
+        const dateSales = await getSalesByDate(dateFilter);
+        console.log('✅ Found sales for date:', dateSales.length);
+        setFilteredSales(dateSales);
+      } catch (error) {
+        console.error('❌ Failed to fetch sales for date:', error);
+        setFilteredSales([]);
+      } finally {
+        setIsFiltering(false);
+      }
+    };
+
+    fetchSalesForDate();  
+    //eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dateFilter, getSalesByDate]);
 
   // Enhanced calendar functions
   const getCalendarDays = () => {
@@ -253,7 +267,7 @@ const Sales: React.FC = () => {
           {(dateFilter) && (
             <div className="flex items-center space-x-2 mt-2 sm:mt-6">
               <span className="text-sm text-gray-600 bg-blue-50 px-3 py-1 rounded">
-                {format(new Date(dateFilter), 'MMM dd, yyyy')}
+                {formatDateSafe(dateFilter)}
               </span>
               <button
                 onClick={clearFilters}
@@ -338,13 +352,13 @@ const Sales: React.FC = () => {
           {isFiltering ? (
             <div className="text-center py-12">
               <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-              <p className="text-gray-600 mt-2">Loading sales for {format(new Date(dateFilter), 'MMM dd, yyyy')}</p>
+              <p className="text-gray-600 mt-2">Loading sales for {formatDateSafe(dateFilter)}</p>
             </div>
           ) : filteredSales.length === 0 ? (
             <div className="text-center py-12">
               <div className="text-gray-400 text-6xl mb-4">📊</div>
               <p className="text-gray-500 text-lg mb-2">
-                {dateFilter ? `No sales on ${format(new Date(dateFilter), 'MMM dd, yyyy')}` : 'No sales recorded yet'}
+                {dateFilter ? `No sales on ${formatDateSafe(dateFilter)}` : 'No sales recorded yet'}
               </p>
               <button
                 onClick={loadSales}
@@ -449,13 +463,13 @@ const Sales: React.FC = () => {
         {isFiltering ? (
           <div className="text-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
             <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-            <p className="text-gray-600 mt-2">Loading sales for {format(new Date(dateFilter), 'MMM dd, yyyy')}</p>
+            <p className="text-gray-600 mt-2">Loading sales for {formatDateSafe(dateFilter)}</p>
           </div>
         ) : filteredSales.length === 0 ? (
           <div className="text-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
             <div className="text-gray-400 text-6xl mb-4">📊</div>
             <p className="text-gray-500 text-lg mb-2">
-              {dateFilter ? `No sales on ${format(new Date(dateFilter), 'MMM dd, yyyy')}` : 'No sales recorded yet'}
+              {dateFilter ? `No sales on ${formatDateSafe(dateFilter)}` : 'No sales recorded yet'}
             </p>
             <button
               onClick={loadSales}

@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react'; // Add useCallback
 import { Sale, CreateSaleRequest } from '../types';
 import { apiService } from '../services/api';
 
 export const useSales = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [allSales, setAllSales] = useState<Sale[]>([]); // Add state to store all sales
 
   const createSale = async (saleData: CreateSaleRequest): Promise<Sale> => {
     setLoading(true);
@@ -40,7 +41,7 @@ export const useSales = () => {
     setLoading(true);
     setError(null);
     try {
-      let allSales: Sale[] = [];
+      let sales: Sale[] = [];
       let page = 1;
       let hasMore = true;
 
@@ -48,7 +49,7 @@ export const useSales = () => {
         const response = await apiService.getSales(page, 100);
         
         if (response.data && response.data.length > 0) {
-          allSales = [...allSales, ...response.data];
+          sales = [...sales, ...response.data];
           hasMore = page < response.pagination.totalPages;
           page++;
         } else {
@@ -56,8 +57,9 @@ export const useSales = () => {
         }
       }
 
-      console.log(`Loaded all ${allSales.length} sales`);
-      return allSales;
+      console.log(`Loaded all ${sales.length} sales`);
+      setAllSales(sales); // Store in state
+      return sales;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch all sales';
       setError(errorMessage);
@@ -81,7 +83,8 @@ export const useSales = () => {
     }
   };
 
-  const getSalesByDate = async (date: string): Promise<Sale[]> => {
+  // FIXED: Use useCallback to prevent recreation
+  const getSalesByDate = useCallback(async (date: string): Promise<Sale[]> => {
     try {
       console.log('🔄 Using NEW endpoint for date:', date);
       
@@ -93,8 +96,7 @@ export const useSales = () => {
     } catch (error) {
       console.error('❌ NEW endpoint failed, using client-side filtering:', error);
       
-      // Fallback to client-side filtering
-      const allSales = await getAllSales();
+      // Use the already loaded sales instead of calling getAllSales again
       const filtered = allSales.filter(sale => {
         if (!sale.created_at) return false;
         const saleDate = new Date(sale.created_at).toISOString().split('T')[0];
@@ -104,7 +106,7 @@ export const useSales = () => {
       console.log('🔄 Client-side filtering found:', filtered.length, 'sales');
       return filtered;
     }
-  };
+  }, [allSales]); // ✅ Now this function is stable
 
   return {
     loading,

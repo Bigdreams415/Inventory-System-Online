@@ -27,8 +27,8 @@ interface SyncState {
   error: string | null;
 }
 
-const API_BASE_URL = 'nonefornow/api';  
-const CLOUD_SYNC_URL = 'nonefornow/api';  
+const API_BASE_URL = 'https://inventory-system-server-jh79.onrender.com/api';  
+const CLOUD_SYNC_URL = 'not longer applicable';  
 
 const DesktopHeader: React.FC = () => {
   const [showPharmacyModal, setShowPharmacyModal] = useState(false);
