@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Sale } from '../types'; // Import Sale type
 import { apiService } from '../services/api';
 
 export const useSales = () => {
@@ -14,6 +15,38 @@ export const useSales = () => {
       return response;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch sales';
+      setError(errorMessage);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // NEW: Get all sales across all pages for cashier
+  const getAllSales = async (): Promise<Sale[]> => {
+    setLoading(true);
+    setError(null);
+    try {
+      let allSales: Sale[] = [];
+      let page = 1;
+      let hasMore = true;
+
+      while (hasMore) {
+        const response = await apiService.getCashierSales(page, 100);
+        
+        if (response.data && response.data.length > 0) {
+          allSales = [...allSales, ...response.data];
+          hasMore = page < response.pagination.totalPages;
+          page++;
+        } else {
+          hasMore = false;
+        }
+      }
+
+      console.log(`✅ Loaded all ${allSales.length} cashier sales`);
+      return allSales;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch all sales';
       setError(errorMessage);
       throw err;
     } finally {
@@ -39,6 +72,7 @@ export const useSales = () => {
     loading,
     error,
     getSales,
+    getAllSales,  
     getTodaySales,
   };
 };

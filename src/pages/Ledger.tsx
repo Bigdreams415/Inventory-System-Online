@@ -4,7 +4,7 @@ import { Sale } from '../types';
 import { useSales } from '../hooks/useLedger';
 
 const Sales: React.FC = () => {
-  const { getSales } = useSales();
+  const { getSales, getAllSales } = useSales();
   const [sales, setSales] = useState<Sale[]>([]);
   const [selectedSale, setSelectedSale] = useState<Sale | null>(null);
   const [dateFilter, setDateFilter] = useState<string>('');
@@ -12,16 +12,20 @@ const Sales: React.FC = () => {
 
   const loadSales = async () => {
     try {
-      const response = await getSales(1, 50);
-      let salesData: Sale[] = [];
+      console.log('🔄 Loading all sales...');
+      const salesData = await getAllSales();
       
-      if (Array.isArray(response)) {
-        salesData = response;
-      } else if (response && typeof response === 'object') {
-        salesData = response.data || [];
+      console.log('📊 Total sales loaded:', salesData.length);
+      
+      // Debug: Check date range
+      const dates = salesData.map(s => s.created_at).filter(Boolean).sort();
+      if (dates.length > 0) {
+        console.log('📅 Date range in data:', {
+          earliest: dates[0],
+          latest: dates[dates.length - 1]
+        });
       }
       
-      console.log('📊 Loaded sales:', salesData.length);
       setSales(salesData);
     } catch (error) {
       console.error('Failed to load sales:', error);

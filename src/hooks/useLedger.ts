@@ -35,6 +35,38 @@ export const useSales = () => {
     }
   };
 
+  // NEW: Get all sales across all pages
+  const getAllSales = async (): Promise<Sale[]> => {
+    setLoading(true);
+    setError(null);
+    try {
+      let allSales: Sale[] = [];
+      let page = 1;
+      let hasMore = true;
+
+      while (hasMore) {
+        const response = await apiService.getSales(page, 100);
+        
+        if (response.data && response.data.length > 0) {
+          allSales = [...allSales, ...response.data];
+          hasMore = page < response.pagination.totalPages;
+          page++;
+        } else {
+          hasMore = false;
+        }
+      }
+
+      console.log(`Loaded all ${allSales.length} sales`);
+      return allSales;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch all sales';
+      setError(errorMessage);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const getTodaySales = async () => {
     setLoading(true);
     setError(null);
@@ -54,6 +86,7 @@ export const useSales = () => {
     error,
     createSale,
     getSales,
+    getAllSales,  
     getTodaySales,
   };
 };
