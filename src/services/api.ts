@@ -144,7 +144,7 @@ class ApiService {
     return this.convertProductsArray(products);
   }
 
-  // Sales endpoints - FIXED WITH PROPER ERROR HANDLING
+  // Sales endpoints 
   async createSale(saleData: CreateSaleRequest): Promise<Sale> {
     const sale = await this.request<any>('/sales', {
       method: 'POST',
@@ -152,7 +152,6 @@ class ApiService {
     });
     return this.convertSaleData(sale);
   }
-
   async getSales(page: number = 1, limit: number = 50): Promise<{ data: Sale[]; pagination: any }> {
     const response = await this.request<any>(`/sales?page=${page}&limit=${limit}`);
     
@@ -196,6 +195,10 @@ class ApiService {
       sales: this.convertSalesArray(salesData),
       summary: summaryData
     };
+  }
+  async getSalesByDateRange(startDate: string, endDate: string): Promise<Sale[]> {
+    const sales = await this.request<any[]>(`/sales/date-range?startDate=${startDate}&endDate=${endDate}`);
+    return this.convertSalesArray(sales);
   }
 
   // Health check

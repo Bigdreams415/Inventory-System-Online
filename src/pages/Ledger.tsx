@@ -4,29 +4,32 @@ import { Sale } from '../types';
 import { useSales } from '../hooks/useLedger';
 
 const Sales: React.FC = () => {
-  const { getSales, getAllSales } = useSales();
+  const { getSales, getAllSales, getSalesByDate } = useSales();
+
   const [sales, setSales] = useState<Sale[]>([]);
   const [selectedSale, setSelectedSale] = useState<Sale | null>(null);
   const [dateFilter, setDateFilter] = useState<string>('');
   const [showCalendar, setShowCalendar] = useState<boolean>(false);
+  const [filteredSales, setFilteredSales] = useState<Sale[]>([]); // ADD THIS
+  const [isFiltering, setIsFiltering] = useState(false); // ADD THIS
 
   const loadSales = async () => {
     try {
-      console.log('🔄 Loading all sales...');
+      console.log('Loading all sales...');
       const salesData = await getAllSales();
       
-      console.log('📊 Total sales loaded:', salesData.length);
+      console.log('Total sales loaded:', salesData.length);
       
-      // Debug: Check date range
       const dates = salesData.map(s => s.created_at).filter(Boolean).sort();
       if (dates.length > 0) {
-        console.log('📅 Date range in data:', {
+        console.log('Date range in data:', {
           earliest: dates[0],
           latest: dates[dates.length - 1]
         });
       }
       
       setSales(salesData);
+      setFilteredSales(salesData);  
     } catch (error) {
       console.error('Failed to load sales:', error);
     }
@@ -36,22 +39,30 @@ const Sales: React.FC = () => {
     loadSales();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  // Fixed date filtering - handles different date formats
-  const filteredSales = dateFilter 
-    ? sales.filter(sale => {
-        if (!sale.created_at) return false;
-        
+  useEffect(() => {
+    if (!dateFilter) {
+      setFilteredSales(sales);
+      setIsFiltering(false);
+    } else {
+      const fetchSalesForDate = async () => {
+        setIsFiltering(true);
         try {
-          const saleDate = new Date(sale.created_at);
-          const saleLocalDate = saleDate.toLocaleDateString('en-CA'); // "2025-11-12" format
-          return saleLocalDate === dateFilter;
+          console.log('Fetching sales for date:', dateFilter);
+          const dateSales = await getSalesByDate(dateFilter);
+          setFilteredSales(dateSales);
+          console.log('Found sales for date:', dateSales.length);
         } catch (error) {
-          console.error('Date parsing error:', error);
-          return false;
+          console.error('Failed to fetch sales for date:', error);
+          setFilteredSales([]);
+        } finally {
+          setIsFiltering(false);
         }
-      })
-    : sales;
+      };
+
+      fetchSalesForDate();
+    }
+  }, [dateFilter, getSalesByDate, sales]);
+
   // Enhanced calendar functions
   const getCalendarDays = () => {
     const today = new Date();
@@ -281,7 +292,7 @@ const Sales: React.FC = () => {
             <div className="ml-3 lg:ml-4">
               <p className="text-xs lg:text-sm font-medium text-gray-600">Revenue</p>
               <p className="text-lg lg:text-2xl font-semibold text-gray-900">
-                ₦{filteredSales.reduce((sum, sale) => sum + (sale.total_amount || 0), 0).toFixed(2)}
+                ₦{filteredSales.reduce((sum: number, sale: Sale) => sum + (sale.total_amount || 0), 0).toFixed(2)}
               </p>
             </div>
           </div>
@@ -313,8 +324,8 @@ const Sales: React.FC = () => {
             <div className="ml-3 lg:ml-4">
               <p className="text-xs lg:text-sm font-medium text-gray-600">Items Sold</p>
               <p className="text-lg lg:text-2xl font-semibold text-gray-900">
-                {filteredSales.reduce((sum, sale) => 
-                  sum + (sale.items?.reduce((itemSum, item) => itemSum + (item.quantity || 0), 0) || 0), 0
+                {filteredSales.reduce((sum: number, sale: Sale) => 
+                  sum + (sale.items?.reduce((itemSum: number, item: any) => itemSum + (item.quantity || 0), 0) || 0), 0
                 )}
               </p>
             </div>
@@ -324,20 +335,25 @@ const Sales: React.FC = () => {
 
       {/* Desktop Table View */}
       <div className="hidden lg:block bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-        {filteredSales.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="text-gray-400 text-6xl mb-4">📊</div>
-            <p className="text-gray-500 text-lg mb-2">
-              {dateFilter ? `No sales on ${format(new Date(dateFilter), 'MMM dd, yyyy')}` : 'No sales recorded yet'}
-            </p>
-            <button
-              onClick={loadSales}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-            >
-              Refresh Data
-            </button>
-          </div>
-        ) : (
+          {isFiltering ? (
+            <div className="text-center py-12">
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              <p className="text-gray-600 mt-2">Loading sales for {format(new Date(dateFilter), 'MMM dd, yyyy')}</p>
+            </div>
+          ) : filteredSales.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="text-gray-400 text-6xl mb-4">📊</div>
+              <p className="text-gray-500 text-lg mb-2">
+                {dateFilter ? `No sales on ${format(new Date(dateFilter), 'MMM dd, yyyy')}` : 'No sales recorded yet'}
+              </p>
+              <button
+                onClick={loadSales}
+                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+              >
+                Refresh Data
+              </button>
+            </div>
+          ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
@@ -384,7 +400,7 @@ const Sales: React.FC = () => {
                     <td className="px-6 py-4">
                       <div className="text-sm text-gray-900">
                         <span className="font-semibold">
-                          {sale.items?.reduce((sum, item) => sum + (item.quantity || 0), 0) || 0}
+                          {sale.items?.reduce((sum: number, item: any) => sum + (item.quantity || 0), 0) || 0}
                         </span> items
                       </div>
                       <div className="text-xs text-gray-500 max-w-xs truncate">
@@ -430,7 +446,12 @@ const Sales: React.FC = () => {
 
       {/* Mobile Card View - Simplified without toggle */}
       <div className="lg:hidden">
-        {filteredSales.length === 0 ? (
+        {isFiltering ? (
+          <div className="text-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <p className="text-gray-600 mt-2">Loading sales for {format(new Date(dateFilter), 'MMM dd, yyyy')}</p>
+          </div>
+        ) : filteredSales.length === 0 ? (
           <div className="text-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
             <div className="text-gray-400 text-6xl mb-4">📊</div>
             <p className="text-gray-500 text-lg mb-2">
@@ -463,7 +484,7 @@ const Sales: React.FC = () => {
                   <div className="flex justify-between">
                     <span className="text-gray-600">Items:</span>
                     <span className="font-medium">
-                      {sale.items?.reduce((sum, item) => sum + (item.quantity || 0), 0) || 0}
+                      {sale.items?.reduce((sum: number, item: any) => sum + (item.quantity || 0), 0) || 0}
                     </span>
                   </div>
                   <div className="flex justify-between">
@@ -538,7 +559,7 @@ const Sales: React.FC = () => {
                 <div className="bg-white border border-gray-200 rounded-lg p-3 lg:p-4 text-center">
                   <p className="text-xs lg:text-sm text-gray-600">Total Items</p>
                   <p className="font-semibold text-lg lg:text-2xl text-gray-900 mt-1">
-                    {selectedSale.items?.reduce((sum, item) => sum + (item.quantity || 0), 0) || 0}
+                    {selectedSale.items?.reduce((sum: number, item: any) => sum + (item.quantity || 0), 0) || 0}
                   </p>
                 </div>
                 <div className="bg-white border border-gray-200 rounded-lg p-3 lg:p-4 text-center">

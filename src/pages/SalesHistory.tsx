@@ -4,29 +4,31 @@ import { Sale } from '../types';
 import { useSales } from '../hooks/useSales';
 
 const SalesHistory: React.FC = () => {
-  const { getSales, getAllSales } = useSales();
+  const { getSales, getAllSales, getSalesByDate } = useSales();
+
   const [sales, setSales] = useState<Sale[]>([]);
   const [selectedSale, setSelectedSale] = useState<Sale | null>(null);
   const [dateFilter, setDateFilter] = useState<string>('');
   const [showCalendar, setShowCalendar] = useState<boolean>(false);
+  const [filteredSales, setFilteredSales] = useState<Sale[]>([]);  
+  const [isFiltering, setIsFiltering] = useState<boolean>(false);  
 
   const loadSales = async () => {
     try {
-      console.log('🔄 Loading all sales...');
+      console.log('Loading all sales...');
       const salesData = await getAllSales();
+      console.log('Total sales loaded:', salesData.length);
       
-      console.log('📊 Total sales loaded:', salesData.length);
-      
-      // Debug: Check date range
-      const dates = salesData.map(s => s.created_at).filter(Boolean).sort();
+      const dates = salesData.map((s: Sale) => s.created_at).filter(Boolean).sort();
       if (dates.length > 0) {
-        console.log('📅 Date range in data:', {
+        console.log('Date range in data:', {
           earliest: dates[0],
           latest: dates[dates.length - 1]
         });
       }
       
       setSales(salesData);
+      setFilteredSales(salesData);  
     } catch (error) {
       console.error('Failed to load sales:', error);
     }
@@ -37,21 +39,29 @@ const SalesHistory: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Fixed date filtering - handles different date formats
-  const filteredSales = dateFilter 
-    ? sales.filter(sale => {
-        if (!sale.created_at) return false;
-        
-        try {
-          const saleDate = new Date(sale.created_at);
-          const saleLocalDate = saleDate.toLocaleDateString('en-CA'); // "2025-11-12" format
-          return saleLocalDate === dateFilter;
-        } catch (error) {
-          console.error('Date parsing error:', error);
-          return false;
-        }
-      })
-    : sales;
+  useEffect(() => {
+  if (!dateFilter) {
+    setFilteredSales(sales);
+    setIsFiltering(false);
+  } else {
+    const fetchSalesForDate = async () => {
+      setIsFiltering(true);
+      try {
+        console.log('Fetching sales for date:', dateFilter);
+        const dateSales = await getSalesByDate(dateFilter);
+        setFilteredSales(dateSales);
+        console.log('Found sales for date:', dateSales.length);
+      } catch (error) {
+        console.error('Failed to fetch sales for date:', error);
+        setFilteredSales([]);
+      } finally {
+        setIsFiltering(false);
+      }
+    };
+
+    fetchSalesForDate();
+  }
+}, [dateFilter, getSalesByDate, sales]);
 
   // Enhanced calendar functions
   const getCalendarDays = () => {
@@ -294,8 +304,8 @@ const SalesHistory: React.FC = () => {
             <div className="ml-3 lg:ml-4">
               <p className="text-xs lg:text-sm font-medium text-gray-600">Items Sold</p>
               <p className="text-lg lg:text-2xl font-semibold text-gray-900">
-                {filteredSales.reduce((sum, sale) => 
-                  sum + (sale.items?.reduce((itemSum, item) => itemSum + (item.quantity || 0), 0) || 0), 0
+                {filteredSales.reduce((sum: number, sale: Sale) => 
+                  sum + (sale.items?.reduce((itemSum: number, item: any) => itemSum + (item.quantity || 0), 0) || 0), 0
                 )}
               </p>
             </div>
@@ -362,7 +372,7 @@ const SalesHistory: React.FC = () => {
                     <td className="px-6 py-4">
                       <div className="text-sm text-gray-900">
                         <span className="font-semibold">
-                          {sale.items?.reduce((sum, item) => sum + (item.quantity || 0), 0) || 0}
+                          {sale.items?.reduce((sum: number, item: any) => sum + (item.quantity || 0), 0) || 0}
                         </span> items
                       </div>
                       <div className="text-xs text-gray-500 max-w-xs truncate">
@@ -436,7 +446,7 @@ const SalesHistory: React.FC = () => {
                   <div className="flex justify-between">
                     <span className="text-gray-600">Items:</span>
                     <span className="font-medium">
-                      {sale.items?.reduce((sum, item) => sum + (item.quantity || 0), 0) || 0}
+                      {sale.items?.reduce((sum: number, item: any) => sum + (item.quantity || 0), 0) || 0}
                     </span>
                   </div>
                   <div className="flex justify-between">
@@ -495,7 +505,7 @@ const SalesHistory: React.FC = () => {
                 <div className="bg-white border border-gray-200 rounded-lg p-3 lg:p-4 text-center">
                   <p className="text-xs lg:text-sm text-gray-600">Total Items</p>
                   <p className="font-semibold text-lg lg:text-2xl text-gray-900 mt-1">
-                    {selectedSale.items?.reduce((sum, item) => sum + (item.quantity || 0), 0) || 0}
+                    {selectedSale.items?.reduce((sum: number, item: any) => sum + (item.quantity || 0), 0) || 0}
                   </p>
                 </div>
                 <div className="bg-white border border-gray-200 rounded-lg p-3 lg:p-4 text-center">

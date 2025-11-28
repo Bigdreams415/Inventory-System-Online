@@ -81,6 +81,22 @@ export const useSales = () => {
     }
   };
 
+  const getSalesByDate = async (date: string): Promise<Sale[]> => {
+    setLoading(true);
+    setError(null);
+    try {
+      // Use the same date for start and end to get sales for a specific day
+      const salesData = await apiService.getSalesByDateRange(date, date);
+      return salesData;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch sales by date';
+      setError(errorMessage);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
     loading,
     error,
@@ -88,5 +104,6 @@ export const useSales = () => {
     getSales,
     getAllSales,  
     getTodaySales,
+    getSalesByDate,
   };
 };
