@@ -478,7 +478,7 @@ const PointOfSale: React.FC = () => {
                   {product.stock <= 0 && (
                     <p className="text-xs text-red-600 mt-1">Out of Stock</p>
                   )}
-                  {product.stock > 0 && product.stock <= 20 && (
+                  {product.stock > 0 && product.stock <= 5 && (
                     <p className="text-xs text-yellow-600 mt-1">Low Stock</p>
                   )}
                 </div>
@@ -594,7 +594,7 @@ const PointOfSale: React.FC = () => {
                     {product.stock <= 0 && (
                       <p className="text-xs text-red-600 mt-1">Out of Stock</p>
                     )}
-                    {product.stock > 0 && product.stock <= 20 && (
+                    {product.stock > 0 && product.stock <= 5 && (
                       <p className="text-xs text-yellow-600 mt-1">Low Stock</p>
                     )}
                   </div>
