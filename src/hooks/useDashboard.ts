@@ -72,7 +72,7 @@ export const useDashboard = () => {
         apiService.getSalesTrend(7),
         apiService.getCategoryDistribution(),
         apiService.getRecentSales(5),
-        apiService.getLowStockProducts(10)
+        apiService.getLowStockProducts(20)
       ]);
 
       console.log('Dashboard data loaded successfully');
@@ -129,7 +129,7 @@ export const useDashboard = () => {
     }
   };
 
-  const loadLowStockProducts = async (threshold: number = 10) => {
+  const loadLowStockProducts = async (threshold: number = 20) => {
     try {
       const data = await apiService.getLowStockProducts(threshold);
       setLowStockProducts(data);
