@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Service, ServiceSale, ServiceStats, ServiceSalesStats } from '../types';
 
-const API_BASE_URL = 'https://inventory-system-server-henna.vercel.app/api';
+const API_BASE_URL = 'https://inventory-system-server-jh79.onrender.com/api';
 
 // Helper function to get auth headers (same as in api.ts)
 const getAuthHeaders = (): HeadersInit => {
