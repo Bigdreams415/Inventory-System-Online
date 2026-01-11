@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Sale } from '../types'; // Import Sale type
+import { Sale } from '../types';
 import { apiService } from '../services/api';
 
 export const useSales = () => {
@@ -10,7 +10,6 @@ export const useSales = () => {
     setLoading(true);
     setError(null);
     try {
-      // Use the new sales-history endpoint
       const response = await apiService.getCashierSales(page, limit);
       return response;
     } catch (err) {
@@ -22,7 +21,6 @@ export const useSales = () => {
     }
   };
 
-  // NEW: Get all sales across all pages for cashier
   const getAllSales = async (): Promise<Sale[]> => {
     setLoading(true);
     setError(null);
@@ -43,7 +41,6 @@ export const useSales = () => {
         }
       }
 
-      console.log(`✅ Loaded all ${allSales.length} cashier sales`);
       return allSales;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch all sales';
@@ -70,17 +67,11 @@ export const useSales = () => {
 
   const getSalesByDate = async (date: string): Promise<Sale[]> => {
     try {
-      console.log('🔄 Using NEW endpoint for date:', date);
-      
-      // Use the new simple endpoint
-      const sales = await apiService.getSalesByDate(date);
-      console.log('✅ NEW endpoint found sales:', sales.length);
+      const sales = await apiService.getCashierSalesByDate(date);
       return sales;
-      
     } catch (error) {
-      console.error('❌ NEW endpoint failed, using client-side filtering:', error);
+      console.error('Cashier date filter failed, using fallback:', error);
       
-      // Fallback to client-side filtering
       const allSales = await getAllSales();
       const filtered = allSales.filter(sale => {
         if (!sale.created_at) return false;
@@ -88,7 +79,6 @@ export const useSales = () => {
         return saleDate === date;
       });
       
-      console.log('🔄 Client-side filtering found:', filtered.length, 'sales');
       return filtered;
     }
   };

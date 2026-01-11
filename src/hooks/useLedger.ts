@@ -1,11 +1,11 @@
-import { useState, useCallback } from 'react'; // Add useCallback
+import { useState, useCallback } from 'react';
 import { Sale, CreateSaleRequest } from '../types';
 import { apiService } from '../services/api';
 
 export const useSales = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [allSales, setAllSales] = useState<Sale[]>([]); // Add state to store all sales
+  const [allSales, setAllSales] = useState<Sale[]>([]);
 
   const createSale = async (saleData: CreateSaleRequest): Promise<Sale> => {
     setLoading(true);
@@ -36,7 +36,6 @@ export const useSales = () => {
     }
   };
 
-  // NEW: Get all sales across all pages
   const getAllSales = async (): Promise<Sale[]> => {
     setLoading(true);
     setError(null);
@@ -57,8 +56,7 @@ export const useSales = () => {
         }
       }
 
-      console.log(`Loaded all ${sales.length} sales`);
-      setAllSales(sales); // Store in state
+      setAllSales(sales);
       return sales;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch all sales';
@@ -83,30 +81,22 @@ export const useSales = () => {
     }
   };
 
-  // FIXED: Use useCallback to prevent recreation
   const getSalesByDate = useCallback(async (date: string): Promise<Sale[]> => {
     try {
-      console.log('🔄 Using NEW endpoint for date:', date);
-      
-      // Use the new simple endpoint
       const sales = await apiService.getSalesByDate(date);
-      console.log('✅ NEW endpoint found sales:', sales.length);
       return sales;
-      
     } catch (error) {
-      console.error('❌ NEW endpoint failed, using client-side filtering:', error);
+      console.error('Admin date filter failed, using fallback:', error);
       
-      // Use the already loaded sales instead of calling getAllSales again
       const filtered = allSales.filter(sale => {
         if (!sale.created_at) return false;
         const saleDate = new Date(sale.created_at).toISOString().split('T')[0];
         return saleDate === date;
       });
       
-      console.log('🔄 Client-side filtering found:', filtered.length, 'sales');
       return filtered;
     }
-  }, [allSales]); // ✅ Now this function is stable
+  }, [allSales]);
 
   return {
     loading,

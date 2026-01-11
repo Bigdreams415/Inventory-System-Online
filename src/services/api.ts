@@ -201,6 +201,13 @@ class ApiService {
     const sales = await this.request<any[]>(`/sales/by-date?date=${date}`);
     return this.convertSalesArray(sales);
   }
+
+  // Cashier sales by date
+  async getCashierSalesByDate(date: string): Promise<Sale[]> {
+    const sales = await this.request<any[]>(`/sales-history/by-date?date=${date}`);
+    return this.convertSalesArray(sales);
+  }
+  
   // Health check
   async healthCheck(): Promise<{ message: string; timestamp: string }> {
     return this.request('/health');
